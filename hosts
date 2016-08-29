@@ -1,7 +1,10 @@
+# please fill the hosts for the controller and compute groups
+# you can supply the same single host
 [controller]
 
 [compute]
 
+# please do not edit or remove the groups below
 [database:children]
 controller
 

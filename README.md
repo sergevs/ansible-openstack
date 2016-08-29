@@ -30,14 +30,14 @@ the configuration file which can be found in roles/_service_/[files|templates] d
 
 Besides of cluster( or single host ) setup, the playbook also generates cluster manager configuration file located at **workdir/services.xml**.
 Please visit [clinit manager home page](https://github.com/sergevs/clinit) and see 
-[manual](https://github.com/sergevs/clinit/wiki) .The rpm package can be downloaded from [clinit-1.0-ssv1.el6.noarch.rpm](https://github.com/sergevs/clinit/releases/download/1.0/clinit-1.0-ssv1.el6.noarch.rpm).
+[manual](https://github.com/sergevs/clinit/wiki). The rpm package can be downloaded from [clinit-1.0-ssv1.el6.noarch.rpm](https://github.com/sergevs/clinit/releases/download/1.0/clinit-1.0-ssv1.el6.noarch.rpm).
 After clinit package installed you’ll be able to stop, start and see status of services on any node.
 
 # Configuration
 Service configuration performed using the hosts file. The empty [hosts](https://github.com/sergevs/ansible-openstack/blob/master/hosts) file is supplied with playbook.
 **You must not remove any existing group**. Leave the group empty if you don't need services the group configures. The same hostname can be placed to any hosts group.
 As aninstance if you want setup everything on one host, just put the same hostname to each hosts group.
-As far, only **controller** and **compute** groups are tested and supported.
+As far, only **controller** and **compute** groups are well tested and supported.
 
 #### Variables parameters:
 Please see [group_vars](https://github.com/sergevs/ansible-openstack/tree/master/group_vars) and supply appropriate configuration for the required
