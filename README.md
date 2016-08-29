@@ -65,11 +65,9 @@ Also most hostgroups have the tag with similar name.
 
 
 # Requirements
-[Ansible >= 2.1.1.0 ](http://www.ansible.com) is required. Please read [official documentation](http://docs.ansible.com/ansible/intro_installation.html#latest-release-via-yum) to install it. 
-
-Openstack version: liberty or mitaka - please use appropriate branch, mitaka is currently at the master branch.
-
-**remote_user = root** must be configured for ansible.
+* [Ansible >= 2.1.1.0 ](http://www.ansible.com) is required. Please read [official documentation](http://docs.ansible.com/ansible/intro_installation.html#latest-release-via-yum) to install it. 
+* Openstack version: liberty or mitaka - please use appropriate branch, mitaka is currently at the master branch.
+* **remote_user = root** must be configured for ansible.
 
 # Target host(s) requirements
 * OS version: Redhat/CentOS 7
