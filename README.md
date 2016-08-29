@@ -72,19 +72,13 @@ Openstack version: liberty or mitaka - please use appropriate branch, mitaka is 
 **remote_user = root** must be configured for ansible.
 
 # Target host(s) requirements
-The required for Openstack repositories have to be properly configured.
-
-OS version: Redhat/CentOS 7
-
-SSH key passwordless authentication must be configured for root account.
-
-**se_linux** must be disabled.
-
-**requiretty** should be switched off in **/etc/sudoers** file.
-
-2 interfaces must be present and one available for **provider(public)** network.
-
-at least one free partition must be available for **cinder**( block storage ) service.
+* OS version: Redhat/CentOS 7
+* The required for Openstack repositories have to be properly configured.
+* SSH key passwordless authentication must be configured for root account.
+* **se_linux** must be disabled.
+* **requiretty** should be switched off in **/etc/sudoers** file.
+* 2 interfaces must be present and one available for **provider(public)** network.
+* at least one free partition must be available for **cinder**( block storage ) service.
 
 ## License
 
