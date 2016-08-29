@@ -1,0 +1,57 @@
+- name: copy db create template
+  template: src=novadb.sql.j2 dest=/tmp/novadb.sql
+
+- name: create database
+  shell : mysql -u root < /tmp/novadb.sql
+
+- name: remove sql
+  file: path=/tmp/novadb.sql state=absent
+
+- name: list users
+  command: "openstack user list"
+  register: ulist
+
+- block:
+    - command: "openstack user create --domain default --password {{ nova_password }} nova"
+    - command: "openstack role add --project service --user nova admin"
+    - command: "openstack service create --name nova --description 'OpenStack Compute' compute"
+    - command: "openstack endpoint create --region RegionOne compute {{ item }} http://{{ ansible_hostname }}:8774/v2/%(tenant_id)s"
+      with_items:
+        - internal
+        - public
+        - admin
+  when: not ansible_check_mode and ulist.stdout.find("nova") < 0
+
+- name: install packages
+  tags: packages
+  package: name={{ item }} state=latest
+  with_items:
+    - openstack-nova-api
+    - openstack-nova-cert
+    - openstack-nova-conductor
+    - openstack-nova-console
+    - openstack-nova-novncproxy
+    - openstack-nova-scheduler
+    - python-novaclient
+
+- name: install nova configuration
+  template: src={{ item }}.j2 dest=/etc/nova/{{ item }}
+  with_items:
+    - nova.conf
+
+- name: run nova-db sync
+  command: nova-manage db sync
+  become: true
+  become_user: nova
+  when: not ansible_check_mode
+
+- name: start services
+  tags: service
+  service: name={{ item }}  state=restarted enabled=yes
+  with_items:
+    - openstack-nova-api
+    - openstack-nova-cert
+    - openstack-nova-consoleauth
+    - openstack-nova-scheduler
+    - openstack-nova-conductor
+    - openstack-nova-novncproxy

@@ -1,0 +1,24 @@
+#- name: enable repo
+#  command: cp /etc/yum.repos.d/CentOS-Base.repo.save /etc/yum.repos.d/CentOS-Base.repo
+
+- name: install liberty
+  package: name={{ item }} state=latest
+  with_items:
+#    - centos-release-openstack-liberty
+#    - centos-release-openstack-mitaka
+    - python-openstackclient
+    -  openstack-selinux
+
+- name: env
+#  debug: var=item
+  local_action: lineinfile line="export {{ item.key }}={{ item.value}}" dest={{ inventory_dir }}/workdir/admin-rc state=present create=yes
+  tags: penv
+  with_dict: "{{ openstack_env }}"
+  run_once: true
+
+- name: generate services.xml
+  tags:
+    - config
+    - clinit
+  local_action: template src="services.xml.j2" dest={{ inventory_dir }}/workdir/services.xml
+  run_once: true

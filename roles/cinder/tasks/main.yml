@@ -1,0 +1,5 @@
+- include: controller.yml
+  when: controller is defined
+
+- include: cinder.yml
+  when: controller is not defined

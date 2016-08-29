@@ -1,0 +1,5 @@
+CREATE DATABASE IF NOT EXISTS heat;
+
+GRANT ALL PRIVILEGES ON heat.* TO 'heat'@'localhost' IDENTIFIED BY '{{ heatdb_password }}';
+GRANT ALL PRIVILEGES ON heat.* TO 'heat'@'{{ ansible_hostname }}' IDENTIFIED BY '{{ heatdb_password }}';
+GRANT ALL PRIVILEGES ON heat.* TO 'heat'@'%' IDENTIFIED BY '{{ heatdb_password }}';

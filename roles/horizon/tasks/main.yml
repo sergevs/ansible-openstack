@@ -1,0 +1,18 @@
+- name: install packages
+  tags: packages
+  package: name={{ item }} state=latest
+  with_items:
+    - openstack-dashboard
+
+- name: install horizon configuration
+  tags: config
+  template: src={{ item }}.j2 dest=/etc/openstack-dashboard/{{ item }}
+  with_items:
+    - local_settings
+
+- name: start services
+  tags: service
+  service: name={{ item }}  state=restarted enabled=yes
+  with_items:
+    - memcached
+    - httpd

@@ -1,0 +1,19 @@
+- name: install packages
+  tags: package
+  package: name={{ item }} state=latest
+  with_items:
+    - openstack-ceilometer-compute
+    - python-ceilometerclient
+    - python-pecan
+
+- name: install configuration
+  tags: config
+  template: src={{ item }}.j2 dest=/etc/ceilometer/{{ item }}
+  with_items:
+    - ceilometer.conf
+
+- name: start services
+  tags: service
+  service: name={{ item }} state=restarted enabled=yes
+  with_items:
+    - openstack-ceilometer-compute

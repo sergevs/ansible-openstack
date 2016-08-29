@@ -1,0 +1,5 @@
+CREATE DATABASE IF NOT EXISTS nova;
+
+GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'localhost' IDENTIFIED BY '{{ novadb_password }}';
+GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'{{ ansible_hostname }}' IDENTIFIED BY '{{ novadb_password }}';
+GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'%' IDENTIFIED BY '{{ novadb_password }}';

@@ -1,0 +1,18 @@
+- name: install packages
+  tags: packages
+  package: name={{ item }} state=latest
+  with_items:
+    - openstack-nova-compute
+    - sysfsutils
+
+- name: install nova configuration
+  template: src={{ item }}.j2 dest=/etc/nova/{{ item }}
+  with_items:
+    - nova.conf
+
+- name: start services
+  tags: service
+  service: name={{ item }} state=restarted enabled=yes
+  with_items:
+    - libvirtd
+    - openstack-nova-compute

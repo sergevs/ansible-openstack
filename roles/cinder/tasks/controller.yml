@@ -1,0 +1,56 @@
+- name: copy db create template
+  template: src=cinderdb.sql.j2 dest=/tmp/cinderdb.sql
+
+- name: create database
+  shell : mysql -u root < /tmp/cinderdb.sql
+
+- name: remove sql
+  file: path=/tmp/cinderdb.sql state=absent
+
+- name: list users
+  command: "openstack user list"
+  register: ulist
+
+- block:
+    - command: "openstack user create --domain default --password {{ cinder_password }} cinder"
+    - command: "openstack role add --project service --user cinder admin"
+    - command: "openstack service create --name cinder --description 'OpenStack Block Storage service' volume"
+    - command: "openstack service create --name cinderv2 --description 'OpenStack Block Storage service' volumev2"
+    - command: "openstack endpoint create --region RegionOne volume {{ item }} http://{{ ansible_hostname }}:8776/v1/%(tenant_id)s"
+      with_items:
+        - internal
+        - public
+        - admin
+
+    - command: "openstack endpoint create --region RegionOne volumev2 {{ item }} http://{{ ansible_hostname }}:8776/v2/%(tenant_id)s"
+      with_items:
+        - internal
+        - public
+        - admin
+  when: not ansible_check_mode and ulist.stdout.find("cinder") < 0
+
+- name: install packages
+  tags: package
+  package: name={{ item }} state=latest
+  with_items:
+    - openstack-cinder
+    - python-cinderclient
+
+- name: install cinder configuration
+  tags: config
+  template: src={{ item }}.j2 dest=/etc/cinder/{{ item }}
+  with_items:
+    - cinder.conf
+
+- name: run cinder db sync
+  command: cinder-manage db sync
+  become: true
+  become_user: cinder
+  when: not ansible_check_mode
+
+- name: start services
+  tags: service
+  service: name={{ item }} state=restarted enabled=yes
+  with_items:
+    - openstack-cinder-api
+    - openstack-cinder-scheduler

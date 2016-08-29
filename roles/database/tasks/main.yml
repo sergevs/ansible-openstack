@@ -1,0 +1,47 @@
+- name: install mysql packages
+  tags: packages
+  package: name={{ item }} state=latest
+  with_items:
+    - mariadb 
+    - mariadb-server 
+    - MySQL-python
+
+- name: install mysql config
+  tags: config
+  copy: src=server.cnf dest=/etc/my.cnf.d/server.cnf
+
+- name: install mongodb packages
+  tags: packages
+  package: name={{ item }} state=latest
+  with_items:
+    - mongodb
+    - mongodb-server 
+
+- name: install mongod config
+  tags: config
+  copy: src=mongod.conf dest=/etc/mongod.conf
+
+- name: install rabbitmq packages
+  tags: packages
+  package: name={{ item }} state=latest
+  with_items:
+    - rabbitmq-server
+
+- name: start rabbitmq
+  tags: service
+  service: name={{ item }} state=restarted enabled=yes
+  with_items:
+    - mariadb
+    - mongod
+    - rabbitmq-server
+
+- name: get rabbitmq users
+  command: rabbitmqctl list_users
+  register: rabbitmq_users
+
+- name: add rabbitmq user
+  command: rabbitmqctl add_user openstack {{ rabbitmq_password }}
+  when: not ansible_check_mode and rabbitmq_users.stdout.find('openstack') == -1
+
+- name: set rabbitmq permissions
+  command: rabbitmqctl set_permissions openstack ".*" ".*" ".*"

@@ -1,0 +1,99 @@
+- name: copy db create template
+  template: src=keystonedb.sql.j2 dest=/tmp/keystonedb.sql
+
+- name: create database
+  shell : mysql -u root < /tmp/keystonedb.sql
+
+- name: remove sql
+  file: path=/tmp/keystonedb.sql state=absent
+
+- name: generate random token
+  command: echo $OS_TOKEN
+  register: keystonetoken
+
+- name: install required packages
+  tags: packages
+  package: name={{ item }} state=latest
+  with_items:
+    - openstack-keystone 
+    - httpd 
+    - mod_wsgi
+    - memcached 
+    - python-memcached
+
+- name: start memcached
+  tags: service
+  service: name=memcached state=restarted enabled=yes
+
+- name: install keystone configuration
+  tags: config
+  template: src=keystone.conf.j2 dest=/etc/keystone/keystone.conf
+  when: not ansible_check_mode
+
+- name: run keystone-db sync
+  command: keystone-manage db_sync
+  become: true
+  become_user: keystone
+  when: not ansible_check_mode
+
+- name: install httpd config
+  tags: config
+  copy: src=wsgi-keystone.conf dest=/etc/httpd/conf.d/wsgi-keystone.conf
+
+- name: start httpd
+  tags: service
+  service: name=httpd state=restarted enabled=yes 
+
+# create the service entity and API endpoints
+# http://docs.openstack.org/liberty/install-guide-rdo/keystone-services.html
+#
+
+- name: list services
+  command: "openstack service list"
+  register: kservice
+  when: not ansible_check_mode
+
+- name: create keystone service
+  command: "openstack service create --name keystone --description 'OpenStack Identity' identity"
+  when: not ansible_check_mode and kservice.stdout.find("keystone") < 0
+
+- name: list endpoints
+  command: "openstack endpoint list"
+  register: elist
+  when: not ansible_check_mode
+
+- name: create endpoints
+  command: "openstack  endpoint create --region RegionOne identity {{ item }} http://{{ ansible_hostname }}:5000/v2.0"
+  with_items:
+    - internal
+    - public
+    - admin
+  when: not ansible_check_mode and elist.stdout.find("Region") < 0
+
+# create projects, users, and roles
+# http://docs.openstack.org/liberty/install-guide-rdo/keystone-users.html
+#
+- name: list projects
+  command: "openstack project list"
+  register: plist
+  when: not ansible_check_mode
+
+- block:
+  - command: "openstack project create --domain default --description 'Admin Project' admin"
+  - command: "openstack user create --domain default --password {{ admin_password }} admin"
+  - command: "openstack role create admin"
+  - command: "openstack role add --project admin --user admin admin"
+  - command: "openstack project create --domain default --description 'Service Project' service"
+  - command: "openstack project create --domain default --description 'Demo Project' demo"
+  - command: "openstack user create --domain default --password {{ demo_password }} demo"
+  - command: "openstack role create user"
+  - command: "openstack role add --project demo --user demo user"
+  when: not ansible_check_mode and plist.stdout.find("admin") < 0
+
+# test operation
+#
+#- name: test admin token
+#  command: openstack token issue
+#  register: t
+
+#- debug: var=t

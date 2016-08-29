@@ -1,0 +1,6 @@
+CREATE DATABASE IF NOT EXISTS keystone;
+
+
+GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'localhost' IDENTIFIED BY '{{ keystonedb_password }}';
+GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'{{ ansible_hostname }}' IDENTIFIED BY '{{ keystonedb_password }}';
+GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%' IDENTIFIED BY '{{ keystonedb_password }}';

@@ -1,0 +1,5 @@
+CREATE DATABASE IF NOT EXISTS neutron;
+
+GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'localhost' IDENTIFIED BY '{{ neutrondb_password }}';
+GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'{{ ansible_hostname }}' IDENTIFIED BY '{{ neutrondb_password }}';
+GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'%' IDENTIFIED BY '{{ neutrondb_password }}';

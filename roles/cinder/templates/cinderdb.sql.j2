@@ -1,0 +1,5 @@
+CREATE DATABASE IF NOT EXISTS cinder;
+
+GRANT ALL PRIVILEGES ON cinder.* TO 'cinder'@'localhost' IDENTIFIED BY '{{ cinderdb_password }}';
+GRANT ALL PRIVILEGES ON cinder.* TO 'cinder'@'{{ ansible_hostname }}' IDENTIFIED BY '{{ cinderdb_password }}';
+GRANT ALL PRIVILEGES ON cinder.* TO 'cinder'@'%' IDENTIFIED BY '{{ cinderdb_password }}';

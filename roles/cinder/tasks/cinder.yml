@@ -1,0 +1,28 @@
+- name: install packages
+  tags: package
+  package: name={{ item }} state=latest
+  with_items:
+    - lvm2
+    - openstack-cinder
+    - targetcli 
+    - python-oslo-policy
+
+- name: create volume
+  command: pvcreate -y -ff {{ cinder_dev }}
+
+- name: create volume group
+  command: vgcreate cinder-volumes {{ cinder_dev }}
+
+- name: install cinder configuration
+  tags: config
+  template: src={{ item }}.j2 dest=/etc/cinder/{{ item }}
+  with_items:
+    - cinder.conf
+
+- name: start services
+  tags: service
+  service: name={{ item }} state=restarted enabled=yes
+  with_items:
+    - lvm2-lvmetad
+    - openstack-cinder-volume
+    - target

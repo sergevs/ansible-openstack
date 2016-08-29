@@ -1,0 +1,85 @@
+- name: list users
+  command: "openstack user list"
+  register: ulist
+
+- block:
+    - command: "openstack user create --domain default --password {{ swift_password }} swift"
+    - command: "openstack role add --project service --user swift admin"
+    - command: "openstack service create --name swift --description 'OpenStack Object Storage service' object-store"
+    - command: "openstack role create ResellerAdmin"
+    - command: "openstack role add --project service --user ceilometer ResellerAdmin"
+    - command: "openstack endpoint create --region RegionOne object-store {{ item }} http://{{ ansible_hostname }}:8080/v1/AUTH_%(tenant_id)s"
+      with_items:
+        - internal
+        - public
+        - admin
+  when: not ansible_check_mode and ulist.stdout.find("swift") < 0
+
+- name: install packages
+  tags: package
+  package: name={{ item }} state=latest
+  with_items:
+    - openstack-swift-proxy
+    - python-swiftclient 
+    - python-keystoneclient
+    - python-keystonemiddleware
+    - memcached
+    - python-ceilometermiddleware
+
+- name: install swift configuration
+  tags: config
+  template: src={{ item }}.j2 dest=/etc/swift/{{ item }}
+  with_items:
+    - proxy-server.conf
+    - swift.conf
+
+- name: create the base account.builder
+  command: swift-ring-builder account.builder create 10 3 1 chdir=/etc/swift
+
+- name: create the base container.builder
+  command: swift-ring-builder container.builder create 10 3 1 chdir=/etc/swift
+
+- name: create the base object.builder
+  command: swift-ring-builder object.builder create 10 3 1 chdir=/etc/swift
+
+- name: add each storage node to the ring - account.builder
+  command: swift-ring-builder account.builder add --region 1 --zone 1 --ip {{ hostvars[item[0]].ansible_default_ipv4['address'] }} --port 6002 --device {{ item[1]|basename }} --weight 100 chdir=/etc/swift
+  with_nested: 
+    - "{{ groups['swift'] }}"
+    - "{{ swift_storage_devices }}"
+- name: add each storage node to the ring - container.builder
+  command: swift-ring-builder container.builder add --region 1 --zone 1 --ip {{ hostvars[item[0]].ansible_default_ipv4['address'] }} --port 6001 --device {{ item[1]|basename }} --weight 100 chdir=/etc/swift
+  with_nested: 
+    - "{{ groups['swift'] }}"
+    - "{{ swift_storage_devices }}"
+- name: add each storage node to the ring - object.builder
+  command: swift-ring-builder object.builder add --region 1 --zone 1 --ip {{ hostvars[item[0]].ansible_default_ipv4['address'] }} --port 6000 --device {{ item[1]|basename }} --weight 100 chdir=/etc/swift
+  with_nested: 
+    - "{{ groups['swift'] }}"
+    - "{{ swift_storage_devices }}"
+
+- name: rebalance rings
+  command: swift-ring-builder {{ item }} rebalance chdir=/etc/swift
+  with_items:
+    - account.builder
+    - container.builder
+    - object.builder
+
+- name: fetch files
+  tags: fetch
+  fetch: src=/etc/swift/{{ item }} dest={{ inventory_dir }}/workdir/{{ item }} flat=yes
+  with_items:
+    - account.ring.gz
+    - container.ring.gz
+    - object.ring.gz
+#- name: debuggin
+#  tags: feat
+#  debug: msg="{{ hostvars[item].ansible_default_ipv4['address'] }}"
+#  with_items:  "{{ groups['swift'] }}"
+
+- name: start services
+  tags: service
+  service: name={{ item }} state=restarted enabled=yes
+  with_items:
+    - openstack-swift-proxy
+    - memcached

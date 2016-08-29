@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            ssh_key="{{ root_ssh_key }}"
+            effective_user="root">
+
+{% for item in groups['controller'] %}
+  <service id="mariadb" host="{{ item }}"
+              start="service mariadb start &gt; /dev/null 2&gt; /dev/null"
+              stop="service mariadb stop &gt; /dev/null 2&gt; /dev/null"
+              status="service mariadb status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="mongod" host="{{ item }}"
+              start="service mongod start &gt; /dev/null 2&gt; /dev/null"
+              stop="service mongod stop &gt; /dev/null 2&gt; /dev/null"
+              status="service mongod status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="rabbitmq-server" host="{{ item }}"
+              start="service rabbitmq-server start &gt; /dev/null 2&gt; /dev/null"
+              stop="service rabbitmq-server stop &gt; /dev/null 2&gt; /dev/null"
+              status="service rabbitmq-server status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="memcached" host="{{ item }}"
+              start="service memcached start &gt; /dev/null 2&gt; /dev/null"
+              stop="service memcached stop &gt; /dev/null 2&gt; /dev/null"
+              status="service memcached status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="keystone-httpd" host="{{ item }}"
+              start="service httpd start &gt; /dev/null 2&gt; /dev/null"
+              stop="service httpd stop &gt; /dev/null 2&gt; /dev/null"
+              status="service httpd status &gt; /dev/null 2&gt; /dev/null">
+      <requires id="mariadb" host="{{ groups['controller'][0] }}" strong="true"/>
+  </service>
+{% endfor %}
+{% for item in groups['glance'] %}
+  <service id="openstack-glance-registry" host="{{ item }}"
+              start="service openstack-glance-registry start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-glance-registry stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-glance-registry status &gt; /dev/null 2&gt; /dev/null">
+      <requires id="keystone-httpd" host="{{ groups['controller'][0] }}" strong="true"/>
+  </service>
+  <service id="openstack-glance-api" host="{{ item }}"
+              start="service openstack-glance-api start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-glance-api stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-glance-api status &gt; /dev/null 2&gt; /dev/null">
+      <requires id="keystone-httpd" host="{{ groups['controller'][0] }}" strong="true"/>
+  </service>
+{% endfor %}
+{% for item in groups['nova-controller'] %}
+  <service id="openstack-nova-api" host="{{ item }}"
+              start="service openstack-nova-api start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-nova-api stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-nova-api status &gt; /dev/null 2&gt; /dev/null">
+      <requires id="keystone-httpd" host="{{ groups['controller'][0] }}" strong="true"/>
+  </service>
+  <service id="openstack-nova-cert" host="{{ item }}"
+              start="service openstack-nova-cert start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-nova-cert stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-nova-cert status &gt; /dev/null 2&gt; /dev/null">
+      <requires id="keystone-httpd" host="{{ groups['controller'][0] }}" strong="true"/>
+  </service>
+  <service id="openstack-nova-consoleauth" host="{{ item }}"
+              start="service openstack-nova-consoleauth start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-nova-consoleauth stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-nova-consoleauth status &gt; /dev/null 2&gt; /dev/null">
+      <requires id="keystone-httpd" host="{{ groups['controller'][0] }}" strong="true"/>
+  </service>
+  <service id="openstack-nova-scheduler" host="{{ item }}"
+              start="service openstack-nova-scheduler start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-nova-scheduler stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-nova-scheduler status &gt; /dev/null 2&gt; /dev/null">
+      <requires id="keystone-httpd" host="{{ groups['controller'][0] }}" strong="true"/>
+  </service>
+  <service id="openstack-nova-conductor" host="{{ item }}"
+              start="service openstack-nova-conductor start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-nova-conductor stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-nova-conductor status &gt; /dev/null 2&gt; /dev/null">
+      <requires id="keystone-httpd" host="{{ groups['controller'][0] }}" strong="true"/>
+  </service>
+  <service id="openstack-nova-novncproxy" host="{{ item }}"
+              start="service openstack-nova-novncproxy start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-nova-novncproxy stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-nova-novncproxy status &gt; /dev/null 2&gt; /dev/null">
+      <requires id="keystone-httpd" host="{{ groups['controller'][0] }}" strong="true"/>
+  </service>
+{% endfor %}
+{% for item in groups['nova'] %}
+  <service id="openstack-nova-compute" host="{{ item }}"
+              start="service openstack-nova-compute start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-nova-compute stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-nova-compute status &gt; /dev/null 2&gt; /dev/null">
+      <requires id="openstack-nova-api" host="{{ groups['controller'][0] }}" strong="true"/>
+  </service>
+  <service id="libvirtd" host="{{ item }}"
+              start="service libvirtd start &gt; /dev/null 2&gt; /dev/null"
+              stop="service libvirtd stop &gt; /dev/null 2&gt; /dev/null"
+              status="service libvirtd status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+{% endfor %}
+{% for item in groups['neutron-controller'] %}
+  <service id="neutron-server" host="{{ item }}"
+              start="service neutron-server start &gt; /dev/null 2&gt; /dev/null"
+              stop="service neutron-server stop &gt; /dev/null 2&gt; /dev/null"
+              status="service neutron-server status &gt; /dev/null 2&gt; /dev/null">
+      <requires id="keystone-httpd" host="{{ groups['controller'][0] }}" strong="true"/>
+  </service>
+  <service id="neutron-linuxbridge-agent" host="{{ item }}"
+              start="service neutron-linuxbridge-agent start &gt; /dev/null 2&gt; /dev/null"
+              stop="service neutron-linuxbridge-agent stop &gt; /dev/null 2&gt; /dev/null"
+              status="service neutron-linuxbridge-agent status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="neutron-dhcp-agent" host="{{ item }}"
+              start="service neutron-dhcp-agent start &gt; /dev/null 2&gt; /dev/null"
+              stop="service neutron-dhcp-agent stop &gt; /dev/null 2&gt; /dev/null"
+              status="service neutron-dhcp-agent status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="neutron-metadata-agent" host="{{ item }}"
+              start="service neutron-metadata-agent start &gt; /dev/null 2&gt; /dev/null"
+              stop="service neutron-metadata-agent stop &gt; /dev/null 2&gt; /dev/null"
+              status="service neutron-metadata-agent status &gt; /dev/null 2&gt; /dev/null">
+      <requires id="keystone-httpd" host="{{ groups['controller'][0] }}" strong="true"/>
+  </service>
+  <service id="neutron-l3-agent" host="{{ item }}"
+              start="service neutron-l3-agent start &gt; /dev/null 2&gt; /dev/null"
+              stop="service neutron-l3-agent stop &gt; /dev/null 2&gt; /dev/null"
+              status="service neutron-l3-agent status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+{% endfor %}
+{% for item in groups['neutron'] %}
+  <service id="neutron-linuxbridge-agent" host="{{ item }}"
+              start="service neutron-linuxbridge-agent start &gt; /dev/null 2&gt; /dev/null"
+              stop="service neutron-linuxbridge-agent stop &gt; /dev/null 2&gt; /dev/null"
+              status="service neutron-linuxbridge-agent status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+{% endfor %}
+{% for item in groups['cinder-controller'] %}
+  <service id="openstack-cinder-api" host="{{ item }}"
+              start="service openstack-cinder-api start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-cinder-api stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-cinder-api status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-cinder-scheduler" host="{{ item }}"
+              start="service openstack-cinder-scheduler start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-cinder-scheduler stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-cinder-scheduler status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+{% endfor %}
+{% for item in groups['cinder'] %}
+  <service id="lvm2-lvmetad" host="{{ item }}"
+              start="service lvm2-lvmetad start &gt; /dev/null 2&gt; /dev/null"
+              stop="service lvm2-lvmetad stop &gt; /dev/null 2&gt; /dev/null"
+              status="service lvm2-lvmetad status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-cinder-volume" host="{{ item }}"
+              start="service openstack-cinder-volume start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-cinder-volume stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-cinder-volume status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="target" host="{{ item }}"
+              start="service target start &gt; /dev/null 2&gt; /dev/null"
+              stop="service target stop &gt; /dev/null 2&gt; /dev/null"
+              status="service target status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+{% endfor %}
+{% for item in groups['swift-controller'] %}
+  <service id="openstack-swift-proxy" host="{{ item }}"
+              start="service openstack-swift-proxy start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-swift-proxy stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-swift-proxy status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+{% endfor %}
+{% for item in groups['swift'] %}
+  <service id="openstack-swift-account" host="{{ item }}"
+              start="service openstack-swift-account start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-swift-account stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-swift-account status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-swift-account-auditor" host="{{ item }}"
+              start="service openstack-swift-account-auditor start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-swift-account-auditor stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-swift-account-auditor status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-swift-account-reaper" host="{{ item }}"
+              start="service openstack-swift-account-reaper start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-swift-account-reaper stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-swift-account-reaper status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-swift-account-replicator" host="{{ item }}"
+              start="service openstack-swift-account-replicator start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-swift-account-replicator stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-swift-account-replicator status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-swift-container" host="{{ item }}"
+              start="service openstack-swift-container start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-swift-container stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-swift-container status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-swift-container-auditor" host="{{ item }}"
+              start="service openstack-swift-container-auditor start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-swift-container-auditor stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-swift-container-auditor status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-swift-container-replicator" host="{{ item }}"
+              start="service openstack-swift-container-replicator start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-swift-container-replicator stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-swift-container-replicator status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-swift-container-updater" host="{{ item }}"
+              start="service openstack-swift-container-updater start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-swift-container-updater stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-swift-container-updater status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-swift-object" host="{{ item }}"
+              start="service openstack-swift-object start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-swift-object stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-swift-object status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-swift-object-auditor" host="{{ item }}"
+              start="service openstack-swift-object-auditor start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-swift-object-auditor stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-swift-object-auditor status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-swift-object-replicator" host="{{ item }}"
+              start="service openstack-swift-object-replicator start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-swift-object-replicator stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-swift-object-replicator status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-swift-object-updater" host="{{ item }}"
+              start="service openstack-swift-object-updater start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-swift-object-updater stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-swift-object-updater status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+{% endfor %}
+{% for item in groups['heat'] %}
+  <service id="openstack-heat-api" host="{{ item }}"
+              start="service openstack-heat-api start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-heat-api stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-heat-api status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-heat-api-cfn" host="{{ item }}"
+              start="service openstack-heat-api-cfn start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-heat-api-cfn stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-heat-api-cfn status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-heat-engine" host="{{ item }}"
+              start="service openstack-heat-engine start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-heat-engine stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-heat-engine status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+{% endfor %}
+{% for item in groups['ceilometer-controller'] %}
+  <service id="openstack-ceilometer-api" host="{{ item }}"
+              start="service openstack-ceilometer-api start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-ceilometer-api stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-ceilometer-api status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-ceilometer-notification" host="{{ item }}"
+              start="service openstack-ceilometer-notification start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-ceilometer-notification stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-ceilometer-notification status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-ceilometer-central" host="{{ item }}"
+              start="service openstack-ceilometer-central start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-ceilometer-central stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-ceilometer-central status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-ceilometer-collector" host="{{ item }}"
+              start="service openstack-ceilometer-collector start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-ceilometer-collector stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-ceilometer-collector status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-ceilometer-alarm-evaluator" host="{{ item }}"
+              start="service openstack-ceilometer-alarm-evaluator start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-ceilometer-alarm-evaluator stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-ceilometer-alarm-evaluator status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-ceilometer-alarm-notifier" host="{{ item }}"
+              start="service openstack-ceilometer-alarm-notifier start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-ceilometer-alarm-notifier stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-ceilometer-alarm-notifier status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+{% endfor %}
+{% for item in groups['ceilometer-nova'] %}
+  <service id="openstack-ceilometer-compute" host="{{ item }}"
+              start="service openstack-ceilometer-compute start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-ceilometer-compute stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-ceilometer-compute status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+{% endfor %}
+</services>

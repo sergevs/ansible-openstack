@@ -1,0 +1,68 @@
+- name: copy db create template
+  template: src=heatdb.sql.j2 dest=/tmp/heatdb.sql
+
+- name: create database
+  shell : mysql -u root < /tmp/heatdb.sql
+
+- name: remove sql
+  file: path=/tmp/heatdb.sql state=absent
+
+- name: list users
+  command: "openstack user list"
+  register: ulist
+
+- block:
+    - command: "openstack user create --domain default --password {{ heat_password }} heat"
+    - command: "openstack role add --project service --user heat admin"
+    - command: "openstack service create --name heat --description 'OpenStack Orchestration service' orchestration"
+    - command: "openstack service create --name heat-cfn --description 'OpenStack Orchestration service' cloudformation"
+    - command: "openstack endpoint create --region RegionOne orchestration {{ item }} http://{{ ansible_hostname }}:8004/v1/%(tenant_id)s"
+      with_items:
+        - internal
+        - public
+        - admin
+    - command: "openstack endpoint create --region RegionOne cloudformation {{ item }} http://{{ ansible_hostname }}:8000/v1"
+      with_items:
+        - internal
+        - public
+        - admin
+    - command: "openstack domain create --description 'Stack projects and users' heat"
+    - command: "openstack user create --domain heat --password {{ heat_domain_password }} heat_domain_admin"
+    - command: "openstack role add --domain heat --user-domain heat --user heat_domain_admin admin"
+    - command: "openstack role create heat_stack_owner"
+    - command: "openstack role add --project demo --user demo heat_stack_owner"
+    - command: "openstack role create heat_stack_user"
+  when: not ansible_check_mode and ulist.stdout.find("heat") < 0
+
+- name: install packages
+  tags: packages
+  package: name={{ item }} state=latest
+  with_items:
+    - openstack-heat-api
+    - openstack-heat-api-cfn
+    - openstack-heat-engine
+    - openstack-barbican
+    - python-barbicanclient
+    - python-croniter
+    - python-designateclient
+    - python-manilaclient
+    - python-zaqarclient
+
+- name: install configuration
+  template: src={{ item }}.j2 dest=/etc/heat/{{ item }}
+  with_items:
+    - heat.conf
+
+- name: run heat db_sync
+  command: heat-manage db_sync
+  become: true
+  become_user: heat
+  when: not ansible_check_mode
+
+- name: start services
+  tags: service
+  service: name={{ item }} state=restarted enabled=yes
+  with_items:
+    - openstack-heat-api
+    - openstack-heat-api-cfn
+    - openstack-heat-engine

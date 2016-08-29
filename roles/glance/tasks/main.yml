@@ -1,0 +1,72 @@
+- name: copy db create template
+  template: src=glancedb.sql.j2 dest=/tmp/glancedb.sql
+
+- name: create database
+  shell : mysql -u root < /tmp/glancedb.sql
+
+- name: remove sql
+  file: path=/tmp/glancedb.sql state=absent
+
+- name: list users
+  command: "openstack user list"
+  register: ulist
+
+- block:
+    - command: "openstack user create --domain default --password {{ glance_password }} glance"
+    - command: "openstack role add --project service --user glance admin"
+    - command: "openstack service create --name glance --description 'OpenStack Image service' image"
+    - command: "openstack endpoint create --region RegionOne image {{ item }} http://{{ ansible_hostname }}:9292"
+      with_items:
+        - internal
+        - public
+        - admin
+
+  when: not ansible_check_mode and ulist.stdout.find("glance") < 0
+
+- name: install packages
+  tags: packages
+  package: name={{ item }} state=latest
+  with_items:
+    - openstack-glance
+    - python-glance
+    - python-glanceclient
+
+- name: install glance configuration
+  template: src={{ item }}.j2 dest=/etc/glance/{{ item }}
+  with_items:
+    - glance-api.conf
+    - glance-registry.conf
+
+- name: run glance-db sync
+  command: glance-manage db_sync
+  become: true
+  become_user: glance
+  when: not ansible_check_mode
+
+- name: start services
+  tags: service
+  service: name={{ item }}  state=restarted enabled=yes
+  with_items:
+    - openstack-glance-registry
+    - openstack-glance-api
+
+- name: get images list
+  command: "glance image-list"
+  register: imlist
+  when: not ansible_check_mode
+
+- block:
+  - name: get cirros image
+    get_url: url=http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img dest=/tmp/cirros-0.3.4-x86_64-disk.img
+
+  - name: upload the image
+    command: "glance image-create --name 'cirros' --file /tmp/cirros-0.3.4-x86_64-disk.img --disk-format qcow2 --container-format bare --visibility public"
+
+  when: not ansible_check_mode and imlist.stdout.find("cirros") < 0
+
+- name: get images list
+  command: "glance image-list"
+  register: imlist
+  when: not ansible_check_mode
+  
+- debug: var=imlist

@@ -1,0 +1,19 @@
+- name: install packages
+  tags: packages
+  package: name={{ item }} state=latest
+  with_items:
+    - openstack-neutron
+    - openstack-neutron-linuxbridge
+    - ebtables
+    - ipset
+
+- name: install configurations
+  template: src=neutron.conf.j2 dest=/etc/neutron/neutron.conf
+- template: src=linuxbridge_agent.ini.j2 dest=/etc/neutron/plugins/ml2/linuxbridge_agent.ini
+
+- name: start services
+  tags: service
+  service: name={{ item }} state=restarted enabled=yes
+  with_items:
+    - openstack-nova-compute
+    - neutron-linuxbridge-agent

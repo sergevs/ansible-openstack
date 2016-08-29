@@ -1,0 +1,71 @@
+root_ssh_key: ''
+rabbitmq_password: openstack
+keystonedb_password: keystone
+
+admin_password: admin
+demo_password: demo
+
+glancedb_password: glance
+glance_password: glance
+
+heatdb_password: heat
+heat_domain_password: heat
+heat_password: heat
+
+novadb_password: nova
+nova_password: nova
+
+neutrondb_password: neutron
+neutron_password: neutron
+
+provider_network: public
+provider_nameserver: 8.8.8.8
+
+# the required configuration, please supply appropriate configuration
+# see also http://docs.openstack.org/liberty/install-guide-rdo/launch-instance-networks-public.html
+public_interface_name: eth0
+provider_allocation_pool: start=192.168.24.190,end=192.168.24.199
+provider_gateway: 192.168.24.254
+provider_network_cidr: 192.168.24.0/24
+
+selfservice_network: private
+selfservice_nameserver: 8.8.8.8
+selfservice_network_cidr: 192.168.167.0/24
+selfservice_gateway: 192.168.167.1
+
+metadata_secret: top_secret
+
+ceilometerdb_password: ceilometer
+ceilometer_password: ceilometer
+
+cinderdb_password: cinder
+cinder_password: cinder
+
+# the required configuration, please provide empty partition device
+# see also http://docs.openstack.org/liberty/install-guide-rdo/cinder.html
+cinder_dev: /dev/vda3
+
+swift_password: swift
+swift_hash_path_suffit: 39fe2de19b
+swift_hash_path_prefix: 7a2cac670f
+
+swift_storage_dir: /srv/node
+swift_storage_devices:
+  - /srv/swiftfs1.img
+
+swift_device_size: 1G
+
+openstack_env:
+  OS_TOKEN: 18a5142504aae35b8de4
+  OS_IDENTITY_API_VERSION: 3
+  OS_URL: http://{{ groups['controller'][0] }}:35357/v3
+  OS_AUTH_URL: http://{{ groups['controller'][0] }}:35357/v3
+  OS_PROJECT_DOMAIN_ID: default
+  OS_USER_DOMAIN_ID: default
+  OS_PROJECT_NAME: admin
+  OS_TENANT_NAME: admin
+  OS_USERNAME: admin
+  OS_PASSWORD: "{{ admin_password }}"
+  OS_IMAGE_API_VERSION: 2
+  OS_AUTH_VERSION: 3
+  OS_REGION_NAME: RegionOne

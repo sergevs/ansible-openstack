@@ -1,0 +1,86 @@
+- name: install packages
+  tags: package
+  package: name={{ item }} state=latest
+  with_items:
+    - openstack-swift-account
+    - openstack-swift-container
+    - openstack-swift-object
+    - rsync
+    - xfsprogs
+
+- name: install rsync configuration
+  tags: config
+  template: src={{ item }}.j2 dest=/etc/{{ item }}
+  with_items:
+    - rsyncd.conf
+
+- name: start services
+  tags: service
+  service: name={{ item }} state=restarted enabled=yes
+  with_items:
+    - rsyncd
+
+- name: install swift configuration
+  tags: config
+  template: src={{ item }}.j2 dest=/etc/swift/{{ item }}
+  with_items:
+    - account-server.conf
+    - container-server.conf
+    - object-server.conf
+    - swift.conf
+
+- name: install directories
+  tags: config
+  file: dest={{ swift_storage_dir }} owner=swift group=swift state=directory
+
+- name: install directories
+  tags: config
+  file: dest=/var/cache/swift owner=root group=swift state=directory mode=0775
+
+- block:
+  - name: prepare storage
+    file: dest={{ swift_storage_dir }}/{{ item|basename }} state=directory owner=swift
+    with_items: "{{ swift_storage_devices }}"
+  
+  - name: create filefs
+    command: truncate -s {{ swift_device_size }} {{ item }}
+    with_items: "{{ swift_storage_devices }}"
+  
+  - name: create fs
+    command: mkfs.xfs -f {{ item }}
+    with_items: "{{ swift_storage_devices }}"
+
+  - name: create fstab entry
+    lineinfile: line="{{ item }} {{ swift_storage_dir }}/{{ item|basename }} xfs noatime,nodiratime,nobarrier,logbufs=8 0 2" dest=/etc/fstab state=present
+    with_items: "{{ swift_storage_devices }}"
+    
+  - name: mount
+    command: mount -a
+
+  - name: fix permissions
+    command: chown -R swift {{ swift_storage_dir }}
+
+- name: copy ring config
+  tags: copy
+  copy: src={{ inventory_dir }}/workdir/{{ item }} dest=/etc/swift/{{ item }}
+  with_items:
+    - account.ring.gz
+    - container.ring.gz
+    - object.ring.gz
+
+- name: start services
+  tags: service
+  service: name={{ item }} state=restarted enabled=yes
+  with_items:
+    - openstack-swift-account
+    - openstack-swift-account-auditor
+    - openstack-swift-account-reaper
+    - openstack-swift-account-replicator
+    - openstack-swift-container
+    - openstack-swift-container-auditor
+    - openstack-swift-container-replicator
+    - openstack-swift-container-updater
+    - openstack-swift-object
+    - openstack-swift-object-auditor
+    - openstack-swift-object-replicator
+    - openstack-swift-object-updater

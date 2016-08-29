@@ -1,0 +1,5 @@
+CREATE DATABASE IF NOT EXISTS glance;
+
+GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'localhost' IDENTIFIED BY '{{ glancedb_password }}';
+GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'{{ ansible_hostname }}' IDENTIFIED BY '{{ glancedb_password }}';
+GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'%' IDENTIFIED BY '{{ glancedb_password }}';

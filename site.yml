@@ -1,0 +1,110 @@
+- name: prepare
+  hosts: all
+  tags: prepare
+  roles: 
+    - prepare
+  environment: "{{ openstack_env }}"
+
+- name: install database
+  hosts: database
+  roles:
+    - database
+  environment: "{{ openstack_env }}"
+
+- name: install keystone identity service
+  hosts: keystone
+  tags: keystone
+  roles:
+    - keystone
+  environment: "{{ openstack_env }}"
+
+- name: install glance image service
+  hosts: glance
+  tags: glance
+  roles:
+    - glance
+  environment: "{{ openstack_env }}"
+
+- name: install cinder controller service
+  hosts: cinder-controller
+  tags: cinder-controller
+  roles:
+    - { role: cinder, controller: true }
+  environment: "{{ openstack_env }}"
+
+- name: install cinder storage service
+  hosts: cinder
+  tags: cinder
+  roles:
+    - cinder
+  environment: "{{ openstack_env }}"
+
+- name: install ceilometer controller service
+  hosts: ceilometer-controller
+  tags: ceilometer-controller
+  roles:
+    - { role: ceilometer, controller: true }
+  environment: "{{ openstack_env }}"
+
+- name: install ceilometer service
+  hosts: ceilometer-nova
+  tags: ceilometer-nova
+  roles:
+    - ceilometer
+  environment: "{{ openstack_env }}"
+
+- name: install nova controller service
+  hosts: nova-controller
+  tags: nova
+  roles:
+    - { role: nova, controller: true }
+  environment: "{{ openstack_env }}"
+
+- name: install nova compute service
+  hosts: nova
+  tags: nova
+  roles:
+    - nova
+  environment: "{{ openstack_env }}"
+
+- name: install neutron controller service
+  hosts: neutron-controller
+  tags: neutron-controller
+  roles:
+    - { role: neutron, controller: true }
+  environment: "{{ openstack_env }}"
+
+- name: install neutron service
+  hosts: neutron
+  tags: neutron
+  roles:
+    - neutron
+  environment: "{{ openstack_env }}"
+
+- name: install heat orchestration service
+  hosts: heat
+  tags: heat
+  roles:
+    - heat
+  environment: "{{ openstack_env }}"
+
+- name: install swift controller storage
+  hosts: swift-controller
+  tags: swift-controller
+  roles:
+    - { role: swift, controller: true }
+  environment: "{{ openstack_env }}"
+
+- name: install swift object storage
+  hosts: swift
+  tags: swift
+  roles:
+    - swift
+  environment: "{{ openstack_env }}"
+
+- name: install horizon dashboard
+  hosts: horizon
+  tags: horizon
+  roles:
+    - horizon
+  environment: "{{ openstack_env }}"
