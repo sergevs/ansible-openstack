@@ -30,7 +30,7 @@ It’s only required to place hostname(s) to the **controller** and **compute** 
 [group_vars](group_vars/all) parameters.
 
 The playbook contains configuration files in roles directories. If you need to add or change any parameter you can edit
-the configuration file which can be found in roles/_service_/[files|templates] directory.
+the configuration file which can be found in **roles/_service_/[files|templates]** directory.
 
 Besides of cluster( or single host ) setup, the playbook also generates cluster manager configuration file located at **workdir/services.xml**.
 Please visit [clinit manager home page](https://github.com/sergevs/clinit) and see 
