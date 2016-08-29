@@ -8,6 +8,7 @@ heat_waitcondition_server_url = http://{{ groups['controller'][0] }}:8000/v1/wai
 #stack_domain_admin = heat_domain_admin
 #stack_domain_admin_password = {{ heat_domain_password }}
 #stack_user_domain_name = heat_user_domain
+#deferred_auth_method = trusts
 
 # The HTTP Header that will be used to determine which the original request
 # protocol scheme was, even if it was removed by an SSL terminator proxy.
@@ -723,24 +724,22 @@ auth_uri = http://{{ groups['controller'][0] }}:35357
 #insecure = <None>
 
 [keystone_authtoken]
-auth_uri = http://{{ groups['controller'][0] }}:5000/v2.0
-identity_uri = http://{{ groups['controller'][0] }}:5000
-memcached_servers = {{ groups['controller'][0] }}:11211
-auth_type = password
-admin_tenant_name = service
-admin_user = heat
-admin_password = {{ heat_password }}
-
-[trustee]
 auth_uri = http://{{ groups['controller'][0] }}:5000
 auth_url = http://{{ groups['controller'][0] }}:35357
-auth_plugin = password
-project_domain_id = default
-user_domain_id = default
+memcached_servers = {{ groups['controller'][0] }}:11211
+auth_type = password
+project_domain_name = default
+user_domain_name = default
 project_name = service
 username = heat
 password = {{ heat_password }}
+
+[trustee]
+auth_url = http://{{ groups['controller'][0] }}:35357
+auth_plugin = password
 user_domain_name = default
+username = heat
+password = {{ heat_password }}
 
 [database]
 

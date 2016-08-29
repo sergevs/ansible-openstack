@@ -982,9 +982,9 @@ filesystem_store_datadir = /var/lib/glance/images/
 #
 auth_uri = http://{{ groups['controller'][0] }}:5000
 auth_url = http://{{ groups['controller'][0] }}:35357
-auth_plugin = password
-project_domain_id = default
-user_domain_id = default
+auth_type = password
+project_domain_name = default
+user_domain_name = default
 project_name = service
 username = glance
 password = {{ glance_password }}

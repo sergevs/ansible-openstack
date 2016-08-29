@@ -34,7 +34,8 @@
   package: name={{ item }} state=latest
   with_items:
     - openstack-cinder
-    - python-cinderclient
+    - targetcli 
+    - python-keystone
 
 - name: install cinder configuration
   tags: config

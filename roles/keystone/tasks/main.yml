@@ -7,9 +7,9 @@
 - name: remove sql
   file: path=/tmp/keystonedb.sql state=absent
 
-- name: generate random token
-  command: echo $OS_TOKEN
-  register: keystonetoken
+#- name: generate random token
+#  command: echo $OS_TOKEN
+#  register: keystonetoken
 
 - name: install required packages
   tags: packages
@@ -49,21 +49,21 @@
 #
 
 - name: list services
-  command: "openstack service list"
+  command: "openstack --os-token={{ keystonetoken }} service list"
   register: kservice
   when: not ansible_check_mode
 
 - name: create keystone service
-  command: "openstack service create --name keystone --description 'OpenStack Identity' identity"
+  command: "openstack --os-token={{ keystonetoken }} service create --name keystone --description 'OpenStack Identity' identity"
   when: not ansible_check_mode and kservice.stdout.find("keystone") < 0
 
 - name: list endpoints
-  command: "openstack endpoint list"
+  command: "openstack --os-token={{ keystonetoken }} endpoint list"
   register: elist
   when: not ansible_check_mode
 
 - name: create endpoints
-  command: "openstack  endpoint create --region RegionOne identity {{ item }} http://{{ ansible_hostname }}:5000/v2.0"
+  command: "openstack --os-token={{ keystonetoken }} endpoint create --region RegionOne identity {{ item }} http://{{ ansible_hostname }}:5000/v2.0"
   with_items:
     - internal
     - public
@@ -74,15 +74,16 @@
 # http://docs.openstack.org/liberty/install-guide-rdo/keystone-users.html
 #
 - name: list projects
-  command: "openstack project list"
+  command: "openstack --os-token={{ keystonetoken }} project list"
   register: plist
   when: not ansible_check_mode
 
 - block:
-  - command: "openstack project create --domain default --description 'Admin Project' admin"
-  - command: "openstack user create --domain default --password {{ admin_password }} admin"
-  - command: "openstack role create admin"
-  - command: "openstack role add --project admin --user admin admin"
+  - command: "openstack --os-token={{ keystonetoken }} domain create --description 'Default Domain' default"
+  - command: "openstack --os-token={{ keystonetoken }} project create --domain default --description 'Admin Project' admin"
+  - command: "openstack --os-token={{ keystonetoken }} user create --domain default --password {{ admin_password }} admin"
+  - command: "openstack --os-token={{ keystonetoken }} role create admin"
+  - command: "openstack --os-token={{ keystonetoken }} role add --project admin --user admin admin"
   - command: "openstack project create --domain default --description 'Service Project' service"
   - command: "openstack project create --domain default --description 'Demo Project' demo"
   - command: "openstack user create --domain default --password {{ demo_password }} demo"

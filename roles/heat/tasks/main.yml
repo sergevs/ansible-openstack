@@ -47,6 +47,9 @@
     - python-designateclient
     - python-manilaclient
     - python-zaqarclient
+    - python-openstack-mistral
+    - openstack-magnum-api
+    - python2-magnumclient
 
 - name: install configuration
   template: src={{ item }}.j2 dest=/etc/heat/{{ item }}

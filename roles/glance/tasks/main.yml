@@ -50,6 +50,8 @@
     - openstack-glance-registry
     - openstack-glance-api
 
+- wait_for: port=9292
+
 - name: get images list
   command: "glance image-list"
   register: imlist

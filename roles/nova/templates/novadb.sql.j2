@@ -1,5 +1,10 @@
 CREATE DATABASE IF NOT EXISTS nova;
+CREATE DATABASE IF NOT EXISTS nova_api;
 
 GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'localhost' IDENTIFIED BY '{{ novadb_password }}';
 GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'{{ ansible_hostname }}' IDENTIFIED BY '{{ novadb_password }}';
 GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'%' IDENTIFIED BY '{{ novadb_password }}';
+
+GRANT ALL PRIVILEGES ON nova_api.* TO 'nova'@'localhost' IDENTIFIED BY '{{ novadb_password }}';
+GRANT ALL PRIVILEGES ON nova_api.* TO 'nova'@'{{ ansible_hostname }}' IDENTIFIED BY '{{ novadb_password }}';
+GRANT ALL PRIVILEGES ON nova_api.* TO 'nova'@'%' IDENTIFIED BY '{{ novadb_password }}';

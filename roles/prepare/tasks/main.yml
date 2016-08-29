@@ -1,20 +1,14 @@
-#- name: enable repo
-#  command: cp /etc/yum.repos.d/CentOS-Base.repo.save /etc/yum.repos.d/CentOS-Base.repo
-
-- name: install liberty
+- name: install mitaka
   package: name={{ item }} state=latest
   with_items:
-#    - centos-release-openstack-liberty
 #    - centos-release-openstack-mitaka
     - python-openstackclient
-    -  openstack-selinux
+    - openstack-selinux
 
-- name: env
-#  debug: var=item
-  local_action: lineinfile line="export {{ item.key }}={{ item.value}}" dest={{ inventory_dir }}/workdir/admin-rc state=present create=yes
-  tags: penv
+- name: generate environment
+  lineinfile: line="export {{ item.key }}={{ item.value }}" dest=/root/openstack-admin.rc state=present create=yes
+  tags: config
   with_dict: "{{ openstack_env }}"
-  run_once: true
 
 - name: generate services.xml
   tags:

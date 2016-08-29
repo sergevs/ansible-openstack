@@ -284,11 +284,14 @@ user_test5_tester5 = testing5 service
 #
 [filter:authtoken]
 paste.filter_factory = keystonemiddleware.auth_token:filter_factory
-identity_uri = http://{{ groups['controller'][0] }}:35357/
-auth_uri = http://{{ groups['controller'][0] }}:5000/
-admin_tenant_name = service
-admin_user = swift
-admin_password = {{ swift_password }}
+auth_uri = http://{{ groups['controller'][0] }}:5000
+auth_url = http://{{ groups['controller'][0] }}:35357
+auth_type = password
+project_domain_name = default
+user_domain_name = default
+project_name = service
+username = swift
+password = {{ swift_password }}
 #
 # delay_auth_decision defaults to False, but leaving it as false will
 # prevent other auth systems, staticweb, tempurl, formpost, and ACLs from

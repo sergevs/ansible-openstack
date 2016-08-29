@@ -1,5 +1,5 @@
 - include: controller.yml
-  when: ansible_hostname in groups['swift-controller']
+  when: controller is defined
 
 - include: swift.yml
-  when: ansible_hostname in groups['swift']
+  when: controller is not defined

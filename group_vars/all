@@ -54,14 +54,15 @@ swift_storage_devices:
   - /srv/swiftfs1.img
 
 swift_device_size: 1G
+swift_replica_count: 1
 
+keystonetoken: 18a5142504aae35b8de4 
 openstack_env:
-  OS_TOKEN: 18a5142504aae35b8de4
   OS_IDENTITY_API_VERSION: 3
   OS_URL: http://{{ groups['controller'][0] }}:35357/v3
   OS_AUTH_URL: http://{{ groups['controller'][0] }}:35357/v3
-  OS_PROJECT_DOMAIN_ID: default
-  OS_USER_DOMAIN_ID: default
+  OS_PROJECT_DOMAIN_NAME: default
+  OS_USER_DOMAIN_NAME: default
   OS_PROJECT_NAME: admin
   OS_TENANT_NAME: admin
   OS_USERNAME: admin

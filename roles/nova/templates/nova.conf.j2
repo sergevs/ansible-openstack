@@ -19,6 +19,7 @@ instance_usage_audit = True
 instance_usage_audit_period = hour
 notify_on_state_change = vm_and_task_state
 notification_driver = messagingv2
+use_neutron = True
 
 # Number of times to retry live-migration before failing. If == -1, try until
 # out of hosts. If == 0, only try once, no retries. (integer value)
@@ -1465,10 +1466,11 @@ notification_driver = messagingv2
 
 
 [api_database]
-
 #
 # From nova
 #
+connection = mysql://nova:{{ novadb_password }}@{{ groups['controller'][0] }}/nova_api
+
 
 # The SQLAlchemy connection string to use to connect to the Nova API database.
 # (string value)
@@ -1954,7 +1956,7 @@ connection = mysql://nova:{{ novadb_password }}@{{ groups['controller'][0] }}/no
 #
 # From nova
 #
-host = {{ groups['glance'][0] }} 
+api_servers  = http://{{ groups['glance'][0] }}:9292
 
 # Default glance hostname or IP address (string value)
 #host=$my_ip
@@ -2141,9 +2143,9 @@ host = {{ groups['glance'][0] }}
 #
 auth_uri = http://{{ groups['controller'][0] }}:5000
 auth_url = http://{{ groups['controller'][0] }}:35357
-auth_plugin = password
-project_domain_id = default
-user_domain_id = default
+auth_type = password
+project_domain_name = default
+user_domain_name = default
 project_name = service
 username = nova
 password = {{ nova_password }}
@@ -2582,9 +2584,9 @@ virt_type = qemu
 url = http://{{ groups['controller'][0] }}:9696
 auth_url = http://{{ groups['controller'][0] }}:35357
 auth_strategy = keystone
-auth_plugin = password
-project_domain_id = default
-user_domain_id = default
+auth_type = password
+project_domain_name = default
+user_domain_name = default
 region_name = RegionOne
 project_name = service
 admin_tenant_name = service

@@ -34,13 +34,13 @@
     - swift.conf
 
 - name: create the base account.builder
-  command: swift-ring-builder account.builder create 10 3 1 chdir=/etc/swift
+  command: swift-ring-builder account.builder create 10 {{ swift_replica_count }} 1 chdir=/etc/swift
 
 - name: create the base container.builder
-  command: swift-ring-builder container.builder create 10 3 1 chdir=/etc/swift
+  command: swift-ring-builder container.builder create 10 {{ swift_replica_count }} 1 chdir=/etc/swift
 
 - name: create the base object.builder
-  command: swift-ring-builder object.builder create 10 3 1 chdir=/etc/swift
+  command: swift-ring-builder object.builder create 10 {{ swift_replica_count }} 1 chdir=/etc/swift
 
 - name: add each storage node to the ring - account.builder
   command: swift-ring-builder account.builder add --region 1 --zone 1 --ip {{ hostvars[item[0]].ansible_default_ipv4['address'] }} --port 6002 --device {{ item[1]|basename }} --weight 100 chdir=/etc/swift
