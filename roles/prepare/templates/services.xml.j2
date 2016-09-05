@@ -132,6 +132,11 @@
               stop="service neutron-linuxbridge-agent stop &gt; /dev/null 2&gt; /dev/null"
               status="service neutron-linuxbridge-agent status &gt; /dev/null 2&gt; /dev/null">
   </service>
+  <service id="neutron-lbaas-agent" host="{{ item }}"
+              start="service neutron-lbaas-agent start &gt; /dev/null 2&gt; /dev/null"
+              stop="service neutron-lbaas-agent stop &gt; /dev/null 2&gt; /dev/null"
+              status="service neutron-lbaas-agent status &gt; /dev/null 2&gt; /dev/null">
+  </service>
 {% endfor %}
 {% for item in groups['cinder-controller'] %}
   <service id="openstack-cinder-api" host="{{ item }}"
@@ -230,6 +235,11 @@
               stop="service openstack-swift-object-updater stop &gt; /dev/null 2&gt; /dev/null"
               status="service openstack-swift-object-updater status &gt; /dev/null 2&gt; /dev/null">
   </service>
+  <service id="rsyncd" host="{{ item }}"
+              start="service rsyncd start &gt; /dev/null 2&gt; /dev/null"
+              stop="service rsyncd stop &gt; /dev/null 2&gt; /dev/null"
+              status="service rsyncd status &gt; /dev/null 2&gt; /dev/null">
+  </service>
 {% endfor %}
 {% for item in groups['heat'] %}
   <service id="openstack-heat-api" host="{{ item }}"
@@ -269,15 +279,25 @@
               stop="service openstack-ceilometer-collector stop &gt; /dev/null 2&gt; /dev/null"
               status="service openstack-ceilometer-collector status &gt; /dev/null 2&gt; /dev/null">
   </service>
-  <service id="openstack-ceilometer-alarm-evaluator" host="{{ item }}"
-              start="service openstack-ceilometer-alarm-evaluator start &gt; /dev/null 2&gt; /dev/null"
-              stop="service openstack-ceilometer-alarm-evaluator stop &gt; /dev/null 2&gt; /dev/null"
-              status="service openstack-ceilometer-alarm-evaluator status &gt; /dev/null 2&gt; /dev/null">
+  <service id="openstack-aodh-api" host="{{ item }}"
+              start="service openstack-aodh-api start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-aodh-api stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-aodh-api status &gt; /dev/null 2&gt; /dev/null">
   </service>
-  <service id="openstack-ceilometer-alarm-notifier" host="{{ item }}"
-              start="service openstack-ceilometer-alarm-notifier start &gt; /dev/null 2&gt; /dev/null"
-              stop="service openstack-ceilometer-alarm-notifier stop &gt; /dev/null 2&gt; /dev/null"
-              status="service openstack-ceilometer-alarm-notifier status &gt; /dev/null 2&gt; /dev/null">
+  <service id="openstack-aodh-evaluator" host="{{ item }}"
+              start="service openstack-aodh-evaluator start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-aodh-evaluator stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-aodh-evaluator status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-aodh-notifier" host="{{ item }}"
+              start="service openstack-aodh-notifier start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-aodh-notifier stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-aodh-notifier status &gt; /dev/null 2&gt; /dev/null">
+  </service>
+  <service id="openstack-aodh-listener" host="{{ item }}"
+              start="service openstack-aodh-listener start &gt; /dev/null 2&gt; /dev/null"
+              stop="service openstack-aodh-listener stop &gt; /dev/null 2&gt; /dev/null"
+              status="service openstack-aodh-listener status &gt; /dev/null 2&gt; /dev/null">
   </service>
 {% endfor %}
 {% for item in groups['ceilometer-nova'] %}

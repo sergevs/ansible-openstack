@@ -39,20 +39,6 @@
     - cinder
   environment: "{{ openstack_env }}"
 
-- name: install ceilometer controller service
-  hosts: ceilometer-controller
-  tags: ceilometer-controller
-  roles:
-    - { role: ceilometer, controller: true }
-  environment: "{{ openstack_env }}"
-
-- name: install ceilometer service
-  hosts: ceilometer-nova
-  tags: ceilometer-nova
-  roles:
-    - ceilometer
-  environment: "{{ openstack_env }}"
-
 - name: install nova controller service
   hosts: nova-controller
   tags: nova
@@ -65,6 +51,20 @@
   tags: nova
   roles:
     - nova
+  environment: "{{ openstack_env }}"
+
+- name: install ceilometer controller service
+  hosts: ceilometer-controller
+  tags: ceilometer-controller
+  roles:
+    - { role: ceilometer, controller: true }
+  environment: "{{ openstack_env }}"
+
+- name: install ceilometer service
+  hosts: ceilometer-nova
+  tags: ceilometer-nova
+  roles:
+    - ceilometer
   environment: "{{ openstack_env }}"
 
 - name: install neutron controller service

@@ -41,6 +41,12 @@
   with_items:
     - ceilometer.conf
 
+- name: install configuration
+  tags: config
+  copy: src={{ item }} dest=/etc/ceilometer/{{ item }}
+  with_items:
+    - pipeline.yaml
+
 - name: start services
   tags: service
   service: name={{ item }} state=restarted enabled=yes

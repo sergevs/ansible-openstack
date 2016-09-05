@@ -5,10 +5,12 @@
 #
 heat_metadata_server_url = http://{{ groups['controller'][0] }}:8000
 heat_waitcondition_server_url = http://{{ groups['controller'][0] }}:8000/v1/waitcondition
-#stack_domain_admin = heat_domain_admin
-#stack_domain_admin_password = {{ heat_domain_password }}
-#stack_user_domain_name = heat_user_domain
-#deferred_auth_method = trusts
+stack_domain_admin = heat_domain_admin
+stack_domain_admin_password = {{ heat_domain_password }}
+stack_user_domain_name = heat
+deferred_auth_method = trusts
+trusts_delegated_role = heat_stack_owner
+rpc_backend = rabbit
 
 # The HTTP Header that will be used to determine which the original request
 # protocol scheme was, even if it was removed by an SSL terminator proxy.
@@ -843,7 +845,7 @@ connection = mysql+pymysql://heat:{{ heatdb_password }}@{{ groups['controller'][
 
 [ec2authtoken]
 
-auth_uri = http://{{ groups['controller'][0] }}:5000
+auth_uri = http://{{ groups['controller'][0] }}:5000/v3
 
 #
 # From heat.api.aws.ec2token

@@ -29,6 +29,7 @@
     - openstack-neutron
     - openstack-neutron-ml2
     - openstack-neutron-linuxbridge
+    - openstack-neutron-lbaas
     - python-neutronclient
     - ebtables
     - ipset
@@ -39,6 +40,7 @@
 - template: src=linuxbridge_agent.ini.j2 dest=/etc/neutron/plugins/ml2/linuxbridge_agent.ini
 - copy: src=l3_agent.ini dest=/etc/neutron/l3_agent.ini
 - copy: src=dhcp_agent.ini dest=/etc/neutron/dhcp_agent.ini
+- template: src=neutron_lbaas.conf.j2 dest=/etc/neutron/neutron_lbaas.conf
 - template: src=metadata_agent.ini.j2 dest=/etc/neutron/metadata_agent.ini
 - file: src=/etc/neutron/plugins/ml2/ml2_conf.ini dest=/etc/neutron/plugin.ini state=link
   when: not ansible_check_mode

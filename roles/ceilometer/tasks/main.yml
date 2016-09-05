@@ -1,5 +1,9 @@
 - include: controller.yml
   when: controller is defined
 
+- include: aodh.yml
+  when: controller is defined
+  tags: aodh
+
 - include: ceilometer-nova.yml
   when: controller is not defined

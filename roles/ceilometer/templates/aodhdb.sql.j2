@@ -1,0 +1,5 @@
+CREATE DATABASE IF NOT EXISTS aodh;
+
+GRANT ALL PRIVILEGES ON aodh.* TO 'aodh'@'localhost' IDENTIFIED BY '{{ aodhdb_password }}';
+GRANT ALL PRIVILEGES ON aodh.* TO 'aodh'@'{{ ansible_hostname }}' IDENTIFIED BY '{{ aodhdb_password }}';
+GRANT ALL PRIVILEGES ON aodh.* TO 'aodh'@'%' IDENTIFIED BY '{{ aodhdb_password }}';

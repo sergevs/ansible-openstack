@@ -10,6 +10,11 @@
   tags: config
   with_dict: "{{ openstack_env }}"
 
+- name: make workdir
+  tags: config
+  local_action: file dest={{ inventory_dir }}/workdir state=directory
+  run_once: true
+
 - name: generate services.xml
   tags:
     - config

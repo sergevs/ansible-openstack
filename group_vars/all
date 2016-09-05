@@ -12,6 +12,10 @@ heatdb_password: heat
 heat_domain_password: heat
 heat_password: heat
 
+aodhdb_password: aodh
+aodh_domain_password: aodh
+aodh_password: aodh
+
 novadb_password: nova
 nova_password: nova
 
