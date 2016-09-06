@@ -75,8 +75,8 @@ Also most hostgroups have the tag with similar name.
 * SSH key passwordless authentication must be configured for root account.
 * **se_linux** must be disabled.
 * **requiretty** should be switched off in **/etc/sudoers** file.
-* 2 interfaces must be present and one available for **provider(public)** network.
-* at least one free partition must be available for **cinder**( block storage ) service.
+* 2 interfaces must be present: one for private and one for **provider(public)** network.
+* at least one spare partition must be available for **cinder**( block storage ) service.
 
 ## License
 
