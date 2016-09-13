@@ -49,7 +49,7 @@ Please see [group_vars/all](group_vars/all) and supply appropriate configuration
 # Usage
 To start deployment run:
 
-    ansible-playbook -i hosts site.yaml
+    ansible-playbook -i hosts site.yml
 
 if you have installed clinit, after deployment you can also run:
 
