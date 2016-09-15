@@ -50,7 +50,7 @@ cinder_password: cinder
 cinder_dev: /dev/vda3
 
 swift_password: swift
-swift_hash_path_suffit: 39fe2de19b
+swift_hash_path_suffix: 39fe2de19b
 swift_hash_path_prefix: 7a2cac670f
 
 swift_storage_dir: /srv/node
