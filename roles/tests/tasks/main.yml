@@ -1,0 +1,80 @@
+#nova
+- name: launch test instance
+  tags: test_nova
+  command: nova boot --image cirros --flavor m1.tiny --nic net-name=private --poll ansible_test
+  run_once: true
+
+- name: check instance status
+  tags: test_nova
+  shell: nova show ansible_test | awk '/status/{print $4}'
+  register: result
+  failed_when: result.stdout.find('ACTIVE') < 0
+  run_once: true
+
+- name: destroy instance
+  tags: test_nova
+  command: nova delete ansible_test
+  run_once: true
+
+#heat
+- name: copy stack template
+  tags: test_stack
+  copy: src=cirros.yaml dest=/tmp/cirros.yaml
+  run_once: true
+
+- name: create test stack
+  command: heat  stack-create --poll -f /tmp/cirros.yaml  ansible_test
+  run_once: true
+
+- name: check stack status
+  tags: test_stack
+  shell: heat stack-show ansible_test | awk '/status /{print $4}'
+  register: result
+  failed_when: result.stdout.find('CREATE_COMPLETE') < 0
+  run_once: true
+
+- name: delete stack 
+  tags: test_stack
+  command: heat stack-delete -y ansible_test
+  run_once: true
+
+#swift
+- name: create test container
+  tags: test_swift
+  command: swift post ansible_test
+  run_once: true
+
+- name: create test file
+  tags: test_swift
+  command: dd if=/dev/urandom of=ansible_swift_test bs=1024 count=2000
+  run_once: true
+
+- name: upload test file to test container
+  tags: test_swift
+  command: swift upload ansible_test ansible_swift_test
+  run_once: true
+
+- name: remove test file
+  tags: test_swift
+  file: name=ansible_swift_test state=absent
+  run_once: true
+
+- name: download the file from test container
+  tags: test_swift
+  command: swift download ansible_test ansible_swift_test 
+  run_once: true
+
+- name: remove test file
+  tags: test_swift
+  file: name=ansible_swift_test state=absent
+  run_once: true
+
+- name: delete test file from test container
+  tags: test_swift
+  command: swift delete ansible_test ansible_swift_test 
+  run_once: true
+
+- name: delete test container
+  tags: test_swift
+  command: swift delete ansible_test
+  run_once: true

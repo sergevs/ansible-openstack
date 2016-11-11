@@ -108,3 +108,11 @@
   roles:
     - horizon
   environment: "{{ openstack_env }}"
+
+- name: run tests
+  hosts: controller
+  tags: 
+    - test
+  roles:
+    - tests
+  environment: "{{ openstack_env }}"

@@ -1,0 +1,13 @@
+heat_template_version: 2014-10-16  
+description: A simple server.  
+resources:  
+  server:
+    type: OS::Nova::Server
+    properties:
+      flavor: m1.tiny
+      image: cirros
+      networks:
+        - network: private
+      user_data_format: RAW
+      user_data: |
+        #!/bin/sh
