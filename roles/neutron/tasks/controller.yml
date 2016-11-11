@@ -63,6 +63,10 @@
     - neutron-metadata-agent
     - neutron-l3-agent
 
+- name: list networks
+  command: "neutron net-list"
+  register: ulist
+
 - block:
   - command: "neutron net-create --shared --provider:physical_network {{ provider_network }} --provider:network_type flat {{ provider_network }} --router:external True"
   - command: "neutron subnet-create --name {{ provider_network }} --allocation-pool {{ provider_allocation_pool }} --dns-nameserver {{ provider_nameserver }} --gateway {{ provider_gateway }} {{ provider_network }} {{ provider_network_cidr }}"
@@ -74,4 +78,4 @@
   tags: net
   become: true
   become_user: neutron
-  when: not ansible_check_mode
+  when: not ansible_check_mode and ulist.stdout.find("private") < 0
