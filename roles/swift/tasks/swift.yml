@@ -32,33 +32,34 @@
 - name: install directories
   tags: config
   file: dest={{ swift_storage_dir }} owner=swift group=swift state=directory
+  when: not ansible_check_mode
 
 - name: install directories
   tags: config
   file: dest=/var/cache/swift owner=root group=swift state=directory mode=0775
+  when: not ansible_check_mode
 
-- block:
-  - name: prepare storage
-    file: dest={{ swift_storage_dir }}/{{ item|basename }} state=directory owner=swift
-    with_items: "{{ swift_storage_devices }}"
+- name: prepare storage
+  file: dest={{ swift_storage_dir }}/{{ item|basename }} state=directory owner=swift
+  with_items: "{{ swift_storage_devices }}"
+  when: item.find('/dev') < 0 and not ansible_check_mode
   
-  - name: create filefs
-    command: truncate -s {{ swift_device_size }} {{ item }}
-    with_items: "{{ swift_storage_devices }}"
-  
-  - name: create fs
-    command: mkfs.xfs -f {{ item }}
-    with_items: "{{ swift_storage_devices }}"
+- name: create filefs
+  command: truncate -s {{ swift_device_size }} {{ item }}
+  with_items: "{{ swift_storage_devices }}"
+  when: item.find('/dev') < 0 and not ansible_check_mode
 
-  - name: create fstab entry
-    lineinfile: line="{{ item }} {{ swift_storage_dir }}/{{ item|basename }} xfs noatime,nodiratime,nobarrier,logbufs=8 0 2" dest=/etc/fstab state=present
-    with_items: "{{ swift_storage_devices }}"
-    
-  - name: mount
-    command: mount -a
+- name: create fs
+  command: mkfs.xfs -f {{ item }}
+  with_items: "{{ swift_storage_devices }}"
 
-  - name: fix permissions
-    command: chown -R swift {{ swift_storage_dir }}
+- name: mount
+  mount: name={{ swift_storage_dir }}/{{ item|basename }} src={{ item }} fstype=xfs opts="noatime,nodiratime,nobarrier,logbufs=8" state=mounted
+  with_items: "{{ swift_storage_devices }}"
+
+- name: fix permissions
+  file: dest={{ swift_storage_dir }} owner=swift group=swift mode=0775 recurse=yes
+  when: not ansible_check_mode
 
 - name: copy ring config
   tags: copy
