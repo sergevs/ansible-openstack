@@ -6,6 +6,7 @@
     - openstack-cinder
     - targetcli 
     - python-oslo-policy
+    - python-keystonemiddleware
 
 - name: create volume
   command: pvcreate -y -ff {{ cinder_dev }}
