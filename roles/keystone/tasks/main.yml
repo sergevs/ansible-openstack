@@ -24,6 +24,7 @@
 - name: start memcached
   tags: service
   service: name=memcached state=restarted enabled=yes
+  when: not ansible_check_mode
 
 - name: install keystone configuration
   tags: config
@@ -43,6 +44,7 @@
 - name: start httpd
   tags: service
   service: name=httpd state=restarted enabled=yes 
+  when: not ansible_check_mode
 
 # create the service entity and API endpoints
 # http://docs.openstack.org/liberty/install-guide-rdo/keystone-services.html

@@ -35,6 +35,7 @@
     - python-novaclient
 
 - name: install nova configuration
+  tags: config
   template: src={{ item }}.j2 dest=/etc/nova/{{ item }}
   with_items:
     - nova.conf
@@ -51,6 +52,7 @@
 - name: start services
   tags: service
   service: name={{ item }}  state=restarted enabled=yes
+  when: not ansible_check_mode
   with_items:
     - openstack-nova-api
     - openstack-nova-cert

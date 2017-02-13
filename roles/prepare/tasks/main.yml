@@ -5,6 +5,9 @@
     - python-openstackclient
     - openstack-selinux
 
+- name: setup limits
+  copy: src=limits-openstack.conf dest=/etc/security/limits.d/30-openstack.conf 
+
 - name: generate environment
   lineinfile: line="export {{ item.key }}={{ item.value }}" dest=/root/openstack-admin.rc state=present create=yes
   tags: config

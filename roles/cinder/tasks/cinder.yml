@@ -23,6 +23,7 @@
 - name: start services
   tags: service
   service: name={{ item }} state=restarted enabled=yes
+  when: not ansible_check_mode
   with_items:
     - lvm2-lvmetad
     - openstack-cinder-volume
