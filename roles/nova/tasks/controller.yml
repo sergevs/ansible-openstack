@@ -15,7 +15,17 @@
     - command: "openstack user create --domain default --password {{ nova_password }} nova"
     - command: "openstack role add --project service --user nova admin"
     - command: "openstack service create --name nova --description 'OpenStack Compute' compute"
-    - command: "openstack endpoint create --region RegionOne compute {{ item }} http://{{ ansible_hostname }}:8774/v2/%(tenant_id)s"
+    - command: "openstack endpoint create --region RegionOne compute {{ item }} http://{{ ansible_hostname }}:8774/v2.1"
+      with_items:
+        - internal
+        - public
+        - admin
+    - command: "{{ item }}"
+      with_items:
+        - "openstack user create --domain default --password {{ nova_placement_password }} placement"
+        - "openstack role add --project service --user placement admin"
+    - command: "openstack service create --name placement --description 'Placement API' placement"
+    - command: "openstack endpoint create --region RegionOne placement {{ item }} http://{{ ansible_hostname }}:8778"
       with_items:
         - internal
         - public
@@ -27,12 +37,12 @@
   package: name={{ item }} state=latest
   with_items:
     - openstack-nova-api
-    - openstack-nova-cert
     - openstack-nova-conductor
     - openstack-nova-console
     - openstack-nova-novncproxy
     - openstack-nova-scheduler
-    - python-novaclient
+    - openstack-nova-placement-api
+    - openstack-nova-cert
 
 - name: install nova configuration
   tags: config
@@ -40,23 +50,38 @@
   with_items:
     - nova.conf
 
+- name: install fixed httpd configuration
+  tags: config
+  copy: src=00-nova-placement-api.conf dest=/etc/httpd/conf.d/00-nova-placement-api.conf
+
+- name: restart httpd
+  service: name=httpd state=restarted enabled=yes
+
 - name: run nova db sync
-  command: nova-manage {{ item }} sync
+  command: nova-manage {{ item }} 
   become: true
   become_user: nova
   with_items:
-    - db
-    - api_db
+    - "api_db sync"
+    - "cell_v2 map_cell0"
+    - "cell_v2 create_cell --name=cell1 --verbose"
+    - "db sync"
   when: not ansible_check_mode
 
 - name: start services
   tags: service
-  service: name={{ item }}  state=restarted enabled=yes
+  service: name={{ item }} state=restarted enabled=yes
   when: not ansible_check_mode
   with_items:
     - openstack-nova-api
-    - openstack-nova-cert
     - openstack-nova-consoleauth
     - openstack-nova-scheduler
     - openstack-nova-conductor
     - openstack-nova-novncproxy
+    - openstack-nova-cert
+
+- name: verify operation
+  command: nova-manage cell_v2 list_cells
+  register: test
+
+- debug: var=test

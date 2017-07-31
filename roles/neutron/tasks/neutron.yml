@@ -27,4 +27,4 @@
   with_items:
     - openstack-nova-compute
     - neutron-linuxbridge-agent
-    - neutron-lbaas-agent
+    - neutron-lbaasv2-agent

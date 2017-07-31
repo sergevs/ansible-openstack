@@ -15,7 +15,7 @@ volume_clear=none
 volume_clear_size=0
 
 [database]
-connection = mysql://cinder:{{ cinderdb_password }}@{{ groups['controller'][0] }}/cinder
+connection = mysql+pymysql://cinder:{{ cinderdb_password }}@{{ groups['controller'][0] }}/cinder
 
 [keystone_authtoken]
 auth_uri = http://{{ groups['controller'][0] }}:5000

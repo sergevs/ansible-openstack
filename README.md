@@ -2,7 +2,7 @@
 
 An ansible playbook to deploy openstack components to the cluster
 # Overview
-The playbook is composed according to [official openstack guides](http://docs.openstack.org/mitaka/install-guide-rdo/) 
+The playbook is composed according to [official openstack guides](http://docs.openstack.org/ocata/install-guide-rdo/) 
 with a primary purpose to learn openstack deployment in a nutshell. Another reason is to fill the gap between official 
 [full-fledged](https://github.com/openstack/openstack-ansible) and 
 [devel](http://docs.openstack.org/developer/openstack-ansible/developer-docs/quickstart-aio.html) deployment guides. 
@@ -13,7 +13,7 @@ So if you are looking for a simple setup and can afford the lack of HA - than yo
 Also please read requirements section carefully.
 
 # Description
-#### The playbook is able to setup the core services described in the [official guide](http://docs.openstack.org/mitaka/install-guide-rdo/):
+#### The playbook is able to setup the core services described in the [official guide](http://docs.openstack.org/ocata/install-guide-rdo/):
 * **keystone**
 * **glance**
 * **cinder**
@@ -65,8 +65,8 @@ Also most hostgroups have the tag with similar name.
 
 
 # Requirements
-* [Ansible >= 2.1.1.0 ](http://www.ansible.com) is required. Please read [official documentation](http://docs.ansible.com/ansible/intro_installation.html#latest-release-via-yum) to install it. 
-* Openstack version: liberty or mitaka - please use appropriate branch, mitaka is currently at the master branch.
+* [Ansible >= 2.2.0.0 ](http://www.ansible.com) is required. Please read [official documentation](http://docs.ansible.com/ansible/intro_installation.html#latest-release-via-yum) to install it. 
+* Openstack version: **liberty**, **mitaka**, **ocata** - please use appropriate branch, **ocata** is currently at the master branch. **newton** version is skipped
 * **remote_user = root** must be configured for ansible.
 
 # Target host(s) requirements

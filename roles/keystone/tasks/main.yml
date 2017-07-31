@@ -7,10 +7,6 @@
 - name: remove sql
   file: path=/tmp/keystonedb.sql state=absent
 
-#- name: generate random token
-#  command: echo $OS_TOKEN
-#  register: keystonetoken
-
 - name: install required packages
   tags: packages
   package: name={{ item }} state=latest
@@ -20,6 +16,9 @@
     - mod_wsgi
     - memcached 
     - python-memcached
+
+- name: configure memcached
+  template: src=memcached.j2 dest=/etc/sysconfig/memcached
 
 - name: start memcached
   tags: service
@@ -37,6 +36,21 @@
   become_user: keystone
   when: not ansible_check_mode
 
+- name: initialize fernet key repositories
+  command: "{{ item }}"
+  with_items:
+  - "keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone"
+  - "keystone-manage credential_setup --keystone-user keystone --keystone-group keystone"
+
+- name: bootstrap the identity service
+  shell:
+    cmd: | 
+      keystone-manage bootstrap --bootstrap-password {{ admin_password }} \
+      --bootstrap-admin-url http://{{ ansible_hostname }}:35357/v3/ \
+      --bootstrap-internal-url http://{{ ansible_hostname }}:5000/v3/ \
+      --bootstrap-public-url http://{{ ansible_hostname }}:5000/v3/ \
+      --bootstrap-region-id RegionOne
+
 - name: install httpd config
   tags: config
   copy: src=wsgi-keystone.conf dest=/etc/httpd/conf.d/wsgi-keystone.conf
@@ -46,57 +60,21 @@
   service: name=httpd state=restarted enabled=yes 
   when: not ansible_check_mode
 
-# create the service entity and API endpoints
-# http://docs.openstack.org/liberty/install-guide-rdo/keystone-services.html
-#
-
-- name: list services
-  command: "openstack --os-token={{ keystonetoken }} service list"
-  register: kservice
-  when: not ansible_check_mode
-
-- name: create keystone service
-  command: "openstack --os-token={{ keystonetoken }} service create --name keystone --description 'OpenStack Identity' identity"
-  when: not ansible_check_mode and kservice.stdout.find("keystone") < 0
-
-- name: list endpoints
-  command: "openstack --os-token={{ keystonetoken }} endpoint list"
-  register: elist
-  when: not ansible_check_mode
-
-- name: create endpoints
-  command: "openstack --os-token={{ keystonetoken }} endpoint create --region RegionOne identity {{ item }} http://{{ ansible_hostname }}:5000/v2.0"
-  with_items:
-    - internal
-    - public
-    - admin
-  when: not ansible_check_mode and elist.stdout.find("Region") < 0
-
-# create projects, users, and roles
-# http://docs.openstack.org/liberty/install-guide-rdo/keystone-users.html
-#
 - name: list projects
-  command: "openstack --os-token={{ keystonetoken }} project list"
+  command: "openstack project list"
   register: plist
   when: not ansible_check_mode
 
 - block:
-  - command: "openstack --os-token={{ keystonetoken }} domain create --description 'Default Domain' default"
-  - command: "openstack --os-token={{ keystonetoken }} project create --domain default --description 'Admin Project' admin"
-  - command: "openstack --os-token={{ keystonetoken }} user create --domain default --password {{ admin_password }} admin"
-  - command: "openstack --os-token={{ keystonetoken }} role create admin"
-  - command: "openstack --os-token={{ keystonetoken }} role add --project admin --user admin admin"
   - command: "openstack project create --domain default --description 'Service Project' service"
   - command: "openstack project create --domain default --description 'Demo Project' demo"
   - command: "openstack user create --domain default --password {{ demo_password }} demo"
   - command: "openstack role create user"
   - command: "openstack role add --project demo --user demo user"
-  when: not ansible_check_mode and plist.stdout.find("admin") < 0
+  when: not ansible_check_mode and plist.stdout.find("service") < 0
 
-# test operation
-#
-#- name: test admin token
-#  command: openstack token issue
-#  register: t
+- name: test admin token
+  command: openstack token issue
+  register: t
 
-#- debug: var=t
+- debug: var=t

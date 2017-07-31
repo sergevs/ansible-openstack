@@ -1,4 +1,8 @@
+openstack_release: ocata
+
+destroy_data: True
 root_ssh_key: ''
+
 rabbitmq_password: openstack
 keystonedb_password: keystone
 
@@ -18,6 +22,7 @@ aodh_password: aodh
 
 novadb_password: nova
 nova_password: nova
+nova_placement_password: nova_place
 
 neutrondb_password: neutron
 neutron_password: neutron
@@ -26,7 +31,8 @@ provider_network: public
 provider_nameserver: 8.8.8.8
 
 # the required configuration, please supply appropriate configuration
-# see also http://docs.openstack.org/liberty/install-guide-rdo/launch-instance-networks-public.html
+# see also http://docs.openstack.org/ocata/install-guide-rdo/launch-instance-networks-public.html
+
 public_interface_name: eth0
 provider_allocation_pool: start=192.168.24.190,end=192.168.24.199
 provider_gateway: 192.168.24.254
@@ -46,7 +52,7 @@ cinderdb_password: cinder
 cinder_password: cinder
 
 # the required configuration, please provide empty partition device
-# see also http://docs.openstack.org/liberty/install-guide-rdo/cinder.html
+# see also http://docs.openstack.org/ocata/install-guide-rdo/cinder.html
 cinder_dev: /dev/vda3
 
 swift_password: swift
@@ -54,13 +60,14 @@ swift_hash_path_suffix: 39fe2de19b
 swift_hash_path_prefix: 7a2cac670f
 
 swift_storage_dir: /srv/node
+# important note:
+# file or a device can be used, if a device ( started with '/dev' ) it must be not mounted
 swift_storage_devices:
   - /srv/swiftfs1.img
 
 swift_device_size: 1G
 swift_replica_count: 1
 
-keystonetoken: 18a5142504aae35b8de4 
 openstack_env:
   OS_IDENTITY_API_VERSION: 3
   OS_URL: http://{{ groups['controller'][0] }}:35357/v3

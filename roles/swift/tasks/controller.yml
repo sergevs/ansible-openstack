@@ -82,5 +82,6 @@
   service: name={{ item }} state=restarted enabled=yes
   when: not ansible_check_mode
   with_items:
+    - rsyslog
     - openstack-swift-proxy
     - memcached

@@ -1,7 +1,9 @@
-- name: install mitaka
+- name: install {{ openstack_release }}
+  package: name=centos-release-openstack-{{ openstack_release }} state=latest
+
+- name: install support files for {{ openstack_release }}
   package: name={{ item }} state=latest
   with_items:
-#    - centos-release-openstack-mitaka
     - python-openstackclient
     - openstack-selinux
 

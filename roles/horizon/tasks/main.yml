@@ -3,6 +3,7 @@
   package: name={{ item }} state=latest
   with_items:
     - openstack-dashboard
+    - openstack-neutron-lbaas-ui
 
 - name: install horizon configuration
   tags: config

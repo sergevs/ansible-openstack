@@ -3,11 +3,12 @@ notification_driver = messagingv2
 rpc_backend = rabbit
 
 [database]
-connection = mysql://glance:{{ glancedb_password }}@{{ groups['controller'][0] }}/glance
+connection = mysql+pymysql://glance:{{ glancedb_password }}@{{ groups['controller'][0] }}/glance
 
 [keystone_authtoken]
 auth_uri = http://{{ ansible_hostname }}:5000
 auth_url = http://{{ ansible_hostname }}:35357
+memcached_servers = {{ groups['controller'][0] }}:11211
 auth_type = password
 project_domain_name = default
 user_domain_name = default

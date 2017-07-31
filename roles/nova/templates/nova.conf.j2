@@ -1,4 +1,5 @@
 [DEFAULT]
+transport_url = rabbit://openstack:{{ rabbitmq_password }}@{{ groups['controller'][0] }}
 rpc_backend = rabbit
 auth_strategy = keystone
 my_ip = {{ ansible_default_ipv4['address'] }}
@@ -10,15 +11,17 @@ enabled_apis=osapi_compute,metadata
 instance_usage_audit = True
 instance_usage_audit_period = hour
 notify_on_state_change = vm_and_task_state
-notification_driver = messagingv2
 use_neutron = True
 public_interface={{ public_interface_name }}
 
+[api]
+auth_strategy = keystone
+
 [api_database]
-connection = mysql://nova:{{ novadb_password }}@{{ groups['controller'][0] }}/nova_api
+connection = mysql+pymysql://nova:{{ novadb_password }}@{{ groups['controller'][0] }}/nova_api
 
 [database]
-connection = mysql://nova:{{ novadb_password }}@{{ groups['controller'][0] }}/nova
+connection = mysql+pymysql://nova:{{ novadb_password }}@{{ groups['controller'][0] }}/nova
 
 [glance]
 api_servers  = http://{{ groups['glance'][0] }}:9292
@@ -26,6 +29,7 @@ api_servers  = http://{{ groups['glance'][0] }}:9292
 [keystone_authtoken]
 auth_uri = http://{{ groups['controller'][0] }}:5000
 auth_url = http://{{ groups['controller'][0] }}:35357
+memcached_servers = {{ groups['controller'][0] }}:11211
 auth_type = password
 project_domain_name = default
 user_domain_name = default
@@ -58,6 +62,9 @@ rabbit_host = {{ groups['controller'][0] }}
 rabbit_userid = openstack
 rabbit_password = {{ rabbitmq_password }}
 
+[oslo_messaging_notifications]
+driver = messagingv2
+
 [vnc]
 {% if ansible_hostname in groups['nova'] %}
 enabled = True
@@ -65,3 +72,16 @@ enabled = True
 vncserver_listen = $my_ip
 vncserver_proxyclient_address = $my_ip
 novncproxy_base_url = http://{{ groups['controller'][0] }}:6080/vnc_auto.html
+
+[placement]
+os_region_name = RegionOne
+project_domain_name = Default
+project_name = service
+auth_type = password
+user_domain_name = Default
+auth_url = http://{{ groups['controller'][0] }}:35357/v3
+username = placement
+password = {{ nova_placement_password }} 
+
+[scheduler]
+discover_hosts_in_cells_interval = 120

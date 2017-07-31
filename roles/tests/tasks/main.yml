@@ -1,7 +1,11 @@
 #nova
+- name: create nano flavor
+  command: openstack flavor create --id 0 --vcpus 1 --ram 64 --disk 1 m1.nano
+  run_once: true
+
 - name: launch test instance
   tags: test_nova
-  command: nova boot --image cirros --flavor m1.tiny --nic net-name=private --poll ansible_test
+  command: nova boot --image cirros --flavor m1.nano --nic net-name=private --poll ansible_test
   run_once: true
 
 - name: check instance status
@@ -36,6 +40,10 @@
 - name: delete stack 
   tags: test_stack
   command: heat stack-delete -y ansible_test
+  run_once: true
+
+- name: delete nano flavor
+  command: openstack flavor delete m1.nano
   run_once: true
 
 #swift

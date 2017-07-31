@@ -1,3 +1,6 @@
+{% if destroy_data %}
+DROP DATABASE IF EXISTS heat;
+{% endif %}
 CREATE DATABASE IF NOT EXISTS heat;
 
 GRANT ALL PRIVILEGES ON heat.* TO 'heat'@'localhost' IDENTIFIED BY '{{ heatdb_password }}';

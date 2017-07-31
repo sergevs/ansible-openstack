@@ -1,8 +1,10 @@
 [DEFAULT]
-admin_token = {{ keystonetoken }}
+
+[token]
+provider = fernet
 
 [database]
-connection = mysql://keystone:{{ keystonedb_password }}@{{ groups['controller'][0] }}/keystone
+connection =  mysql+pymysql://keystone:{{ keystonedb_password }}@{{ groups['controller'][0] }}/keystone
 
 [cache]
 backend = oslo_cache.memcache_pool

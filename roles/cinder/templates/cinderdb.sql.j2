@@ -1,3 +1,6 @@
+{% if destroy_data %}
+DROP DATABASE IF EXISTS cinder;
+{% endif %}
 CREATE DATABASE IF NOT EXISTS cinder;
 
 GRANT ALL PRIVILEGES ON cinder.* TO 'cinder'@'localhost' IDENTIFIED BY '{{ cinderdb_password }}';

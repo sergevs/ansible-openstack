@@ -4,7 +4,7 @@ resources:
   server:
     type: OS::Nova::Server
     properties:
-      flavor: m1.tiny
+      flavor: m1.nano
       image: cirros
       networks:
         - network: private

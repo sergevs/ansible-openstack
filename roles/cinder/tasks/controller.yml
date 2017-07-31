@@ -16,13 +16,18 @@
     - command: "openstack role add --project service --user cinder admin"
     - command: "openstack service create --name cinder --description 'OpenStack Block Storage service' volume"
     - command: "openstack service create --name cinderv2 --description 'OpenStack Block Storage service' volumev2"
-    - command: "openstack endpoint create --region RegionOne volume {{ item }} http://{{ ansible_hostname }}:8776/v1/%(tenant_id)s"
+    - command: "openstack service create --name cinderv3 --description 'OpenStack Block Storage service' volumev3"
+    - command: "openstack endpoint create --region RegionOne volume {{ item }} http://{{ ansible_hostname }}:8776/v1/%(project_id)s"
       with_items:
         - internal
         - public
         - admin
-
-    - command: "openstack endpoint create --region RegionOne volumev2 {{ item }} http://{{ ansible_hostname }}:8776/v2/%(tenant_id)s"
+    - command: "openstack endpoint create --region RegionOne volumev2 {{ item }} http://{{ ansible_hostname }}:8776/v2/%(project_id)s"
+      with_items:
+        - internal
+        - public
+        - admin
+    - command: "openstack endpoint create --region RegionOne volumev3 {{ item }} http://{{ ansible_hostname }}:8776/v3/%(project_id)s"
       with_items:
         - internal
         - public

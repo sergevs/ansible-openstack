@@ -132,10 +132,10 @@
               stop="service neutron-linuxbridge-agent stop &gt; /dev/null 2&gt; /dev/null"
               status="service neutron-linuxbridge-agent status &gt; /dev/null 2&gt; /dev/null">
   </service>
-  <service id="neutron-lbaas-agent" host="{{ item }}"
-              start="service neutron-lbaas-agent start &gt; /dev/null 2&gt; /dev/null"
-              stop="service neutron-lbaas-agent stop &gt; /dev/null 2&gt; /dev/null"
-              status="service neutron-lbaas-agent status &gt; /dev/null 2&gt; /dev/null">
+  <service id="neutron-lbaasv2-agent" host="{{ item }}"
+              start="service neutron-lbaasv2-agent start &gt; /dev/null 2&gt; /dev/null"
+              stop="service neutron-lbaasv2-agent stop &gt; /dev/null 2&gt; /dev/null"
+              status="service neutron-lbaasv2-agent status &gt; /dev/null 2&gt; /dev/null">
   </service>
 {% endfor %}
 {% for item in groups['cinder-controller'] %}

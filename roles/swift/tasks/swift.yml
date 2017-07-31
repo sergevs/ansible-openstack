@@ -52,10 +52,12 @@
 - name: create fs
   command: mkfs.xfs -f {{ item }}
   with_items: "{{ swift_storage_devices }}"
+  when:  not ansible_check_mode
 
 - name: mount
   mount: name={{ swift_storage_dir }}/{{ item|basename }} src={{ item }} fstype=xfs opts="noatime,nodiratime,nobarrier,logbufs=8" state=mounted
   with_items: "{{ swift_storage_devices }}"
+  when: not ansible_check_mode
 
 - name: fix permissions
   file: dest={{ swift_storage_dir }} owner=swift group=swift mode=0775 recurse=yes
@@ -74,6 +76,7 @@
   service: name={{ item }} state=restarted enabled=yes
   when: not ansible_check_mode
   with_items:
+    - rsyslog
     - openstack-swift-account
     - openstack-swift-account-auditor
     - openstack-swift-account-reaper

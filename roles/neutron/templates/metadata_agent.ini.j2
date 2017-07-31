@@ -1,11 +1,3 @@
 [DEFAULT]
-auth_uri = http://{{ groups['controller'][0] }}:5000
-auth_url = http://{{ groups['controller'][0] }}:35357
-auth_plugin = password
-project_domain_id = default
-user_domain_id = default
-project_name = service
-username = neutron
-password = {{ neutron_password }}
 nova_metadata_ip = {{ groups['controller'][0] }}
 metadata_proxy_shared_secret = {{ metadata_secret }}

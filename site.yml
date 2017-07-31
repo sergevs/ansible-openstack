@@ -7,6 +7,7 @@
 
 - name: install database
   hosts: database
+  tags: database
   roles:
     - database
   environment: "{{ openstack_env }}"
@@ -41,7 +42,7 @@
 
 - name: install nova controller service
   hosts: nova-controller
-  tags: nova
+  tags: nova-controller
   roles:
     - { role: nova, controller: true }
   environment: "{{ openstack_env }}"
@@ -51,6 +52,16 @@
   tags: nova
   roles:
     - nova
+  environment: "{{ openstack_env }}"
+
+- name: discover compute hosts
+  hosts: nova-controller
+  tags: nova-controller
+  tasks:
+    - command: nova-manage cell_v2 discover_hosts --verbose
+      become_user: nova
+      become: true
+      run_once: true
   environment: "{{ openstack_env }}"
 
 - name: install ceilometer controller service
@@ -111,8 +122,7 @@
 
 - name: run tests
   hosts: controller
-  tags: 
-    - test
+  tags: test
   roles:
     - tests
   environment: "{{ openstack_env }}"

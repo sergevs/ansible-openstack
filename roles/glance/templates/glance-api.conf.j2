@@ -1,17 +1,17 @@
 [DEFAULT]
-notification_driver = messagingv2
-rpc_backend = rabbit
 
 [database]
-connection = mysql://glance:{{ glancedb_password }}@{{ groups['controller'][0] }}/glance
+connection = mysql+pymysql://glance:{{ glancedb_password }}@{{ groups['controller'][0] }}/glance
 
 [glance_store]
+stores = file,http
 default_store = file
 filesystem_store_datadir = /var/lib/glance/images/
 
 [keystone_authtoken]
 auth_uri = http://{{ groups['controller'][0] }}:5000
 auth_url = http://{{ groups['controller'][0] }}:35357
+memcached_servers = {{ groups['controller'][0] }}:11211
 auth_type = password
 project_domain_name = default
 user_domain_name = default

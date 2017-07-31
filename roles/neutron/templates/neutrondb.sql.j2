@@ -1,3 +1,6 @@
+{% if destroy_data %}
+DROP DATABASE IF EXISTS neutron;
+{% endif %}
 CREATE DATABASE IF NOT EXISTS neutron;
 
 GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'localhost' IDENTIFIED BY '{{ neutrondb_password }}';
