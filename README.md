@@ -14,15 +14,15 @@ Also please read requirements section carefully.
 
 # Description
 #### The playbook is able to setup the core services described in the [official guide](http://docs.openstack.org/ocata/install-guide-rdo/):
-* **keystone**
-* **glance**
-* **cinder**
-* **nova**
-* **neutron**
-* **heat**
-* **swift**
-* **ceilometer**
-* **horizon**
+* [**keystone**](https://docs.openstack.org/keystone/latest/)
+* [**glance**](https://docs.openstack.org/glance/latest/)
+* [**cinder**](https://docs.openstack.org/cinder/latest/)
+* [**nova**](https://docs.openstack.org/cinder/latest/)
+* [**neutron**](https://docs.openstack.org/neutron/latest/)
+* [**heat**](https://docs.openstack.org/heat/latest/)
+* [**swift**](https://docs.openstack.org/swift/latest/)
+* [**ceilometer**](https://docs.openstack.org/ceiliometer/latest/)
+* [**horizon**](https://docs.openstack.org/horizon/latest/)
 
 The configuration is _very_ simple:
 
