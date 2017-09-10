@@ -21,7 +21,7 @@ Also please read requirements section carefully.
 * [**neutron**](https://docs.openstack.org/neutron/latest/)
 * [**heat**](https://docs.openstack.org/heat/latest/)
 * [**swift**](https://docs.openstack.org/swift/latest/)
-* [**ceilometer**](https://docs.openstack.org/ceiliometer/latest/)
+* [**ceilometer**](https://docs.openstack.org/ceilometer/latest/)
 * [**horizon**](https://docs.openstack.org/horizon/latest/)
 
 The configuration is _very_ simple:
