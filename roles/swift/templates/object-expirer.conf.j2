@@ -1,0 +1,17 @@
+[DEFAULT]
+
+[object-expirer]
+# auto_create_account_prefix = .
+
+[pipeline:main]
+pipeline = catch_errors cache proxy-server
+
+[app:proxy-server]
+use = egg:swift#proxy
+
+[filter:cache]
+use = egg:swift#memcache
+memcached_servers = {% for host in groups['controller'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}:11211{% if not loop.last %},{% endif %}{% endfor %}
+
+[filter:catch_errors]
+use = egg:swift#catch_errors

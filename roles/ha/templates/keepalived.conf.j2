@@ -1,0 +1,11 @@
+vrrp_instance internal_vip_01 {
+    state BACKUP
+    nopreempt
+    interface {{ ansible_default_ipv4['alias']  }}
+    virtual_router_id 01
+    priority {{ groups['controller'].index(inventory_hostname) + 1 }}
+    advert_int 1
+    virtual_ipaddress {
+        {{ internal_vip_address }} dev {{ ansible_default_ipv4['alias'] }}
+    }
+}

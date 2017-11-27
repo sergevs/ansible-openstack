@@ -1,0 +1,16 @@
+- name: install packages
+  tags: packages
+  package: name=keepalived state=latest
+
+- name: install configuration
+  template: src=keepalived.conf.j2 dest=/etc/keepalived/keepalived.conf
+
+- name: start services
+  tags: service
+  service: name=keepalived state=restarted enabled=yes
+  when: not ansible_check_mode
+
+- name: verify vip is available
+  debug: msg="{{ ansible_hostname}} have {{ ansible_all_ipv4_addresses }}"
+  when: internal_vip_address in ansible_all_ipv4_addresses
+  
