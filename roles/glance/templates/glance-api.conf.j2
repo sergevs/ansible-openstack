@@ -1,7 +1,12 @@
 [DEFAULT]
 
+transport_url = rabbit://{% for host in groups['controller'] %}openstack:{{ rabbitmq_password }}@{{ hostvars[host]['ansible_default_ipv4']['address'] }}{% if not loop.last %},{% endif %}{% endfor %}
+
+#bind_host = {{ ansible_default_ipv4['address'] }}
+registry_host = {{ internal_vip_address|default(groups['controller'][0]) }}
+
 [database]
-connection = mysql+pymysql://glance:{{ glancedb_password }}@{{ groups['controller'][0] }}/glance
+connection = mysql+pymysql://glance:{{ glancedb_password }}@{{ internal_vip_address|default(groups['controller'][0]) }}/glance
 
 [glance_store]
 stores = file,http
@@ -9,20 +14,22 @@ default_store = file
 filesystem_store_datadir = /var/lib/glance/images/
 
 [keystone_authtoken]
-auth_uri = http://{{ groups['controller'][0] }}:5000
-auth_url = http://{{ groups['controller'][0] }}:35357
-memcached_servers = {{ groups['controller'][0] }}:11211
+auth_uri = http://{{ internal_vip_address|default(groups['controller'][0]) }}:5000
+auth_url = http://{{ internal_vip_address|default(groups['controller'][0]) }}:35357
 auth_type = password
 project_domain_name = default
 user_domain_name = default
 project_name = service
 username = glance
 password = {{ glance_password }}
-
-[oslo_messaging_rabbit]
-rabbit_host = {{ groups['controller'][0] }}
-rabbit_userid = openstack
-rabbit_password = {{ rabbitmq_password }}
+memcached_servers = {% for host in groups['controller'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}:11211{% if not loop.last %},{% endif %}{% endfor %}
 
 [paste_deploy]
 flavor = keystone
+
+[oslo_messaging_notifications]
+{% if groups['ceilometer-controller']|count > 0 %}
+driver = messagingv2
+{% else %}
+driver = noop
+{% endif %}

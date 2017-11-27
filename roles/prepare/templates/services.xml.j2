@@ -53,12 +53,6 @@
               status="service openstack-nova-api status &gt; /dev/null 2&gt; /dev/null">
       <requires id="keystone-httpd" host="{{ groups['controller'][0] }}" strong="true"/>
   </service>
-  <service id="openstack-nova-cert" host="{{ item }}"
-              start="service openstack-nova-cert start &gt; /dev/null 2&gt; /dev/null"
-              stop="service openstack-nova-cert stop &gt; /dev/null 2&gt; /dev/null"
-              status="service openstack-nova-cert status &gt; /dev/null 2&gt; /dev/null">
-      <requires id="keystone-httpd" host="{{ groups['controller'][0] }}" strong="true"/>
-  </service>
   <service id="openstack-nova-consoleauth" host="{{ item }}"
               start="service openstack-nova-consoleauth start &gt; /dev/null 2&gt; /dev/null"
               stop="service openstack-nova-consoleauth stop &gt; /dev/null 2&gt; /dev/null"

@@ -19,9 +19,9 @@ user_test_tester3 = testing3
 user_test5_tester5 = testing5 service
 
 [filter:authtoken]
+auth_uri = http://{{ internal_vip_address|default(groups['controller'][0]) }}:5000
+auth_url = http://{{ internal_vip_address|default(groups['controller'][0]) }}:35357
 paste.filter_factory = keystonemiddleware.auth_token:filter_factory
-auth_uri = http://{{ groups['controller'][0] }}:5000
-auth_url = http://{{ groups['controller'][0] }}:35357
 auth_type = password
 project_domain_name = default
 user_domain_name = default
@@ -29,14 +29,18 @@ project_name = service
 username = swift
 password = {{ swift_password }}
 delay_auth_decision = True
+memcached_servers = {% for host in groups['controller'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}:11211{% if not loop.last %},{% endif %}{% endfor %}
 
+{% if groups['ceilometer-controller']|count > 0 %}
 [filter:ceilometer]
 paste.filter_factory = ceilometermiddleware.swift:filter_factory
 control_exchange = swift
-url = rabbit://openstack:{{ rabbitmq_password }}@{{ groups['controller'][0] }}:5672/
+url = rabbit://{% for host in groups['controller'] %}openstack:{{ rabbitmq_password }}@{{ hostvars[host]['ansible_default_ipv4']['address'] }}{% if not loop.last %},{% endif %}{% endfor %}
+
 driver = messagingv2
 topic = notifications
 log_level = WARN
+{% endif %}
 
 [filter:keystoneauth]
 use = egg:swift#keystoneauth
@@ -47,7 +51,7 @@ use = egg:swift#healthcheck
 
 [filter:cache]
 use = egg:swift#memcache
-memcache_servers = 127.0.0.1:11211
+memcached_servers = {% for host in groups['controller'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}:11211{% if not loop.last %},{% endif %}{% endfor %}
 
 [filter:ratelimit]
 use = egg:swift#ratelimit

@@ -1,20 +1,3 @@
-- name: list users
-  command: "openstack user list"
-  register: ulist
-
-- block:
-    - command: "openstack user create --domain default --password {{ swift_password }} swift"
-    - command: "openstack role add --project service --user swift admin"
-    - command: "openstack service create --name swift --description 'OpenStack Object Storage service' object-store"
-    - command: "openstack role create ResellerAdmin"
-    - command: "openstack role add --project service --user ceilometer ResellerAdmin"
-    - command: "openstack endpoint create --region RegionOne object-store {{ item }} http://{{ ansible_hostname }}:8080/v1/AUTH_%(tenant_id)s"
-      with_items:
-        - internal
-        - public
-        - admin
-  when: not ansible_check_mode and ulist.stdout.find("swift") < 0
-
 - name: install packages
   tags: package
   package: name={{ item }} state=latest
@@ -32,6 +15,24 @@
   with_items:
     - proxy-server.conf
     - swift.conf
+    - object-expirer.conf
+
+- name: list users
+  command: "openstack user list"
+  register: ulist
+
+- block:
+    - command: "openstack user create --domain default --password {{ swift_password }} swift"
+    - command: "openstack role add --project service --user swift admin"
+    - command: "openstack service create --name swift --description 'OpenStack Object Storage service' object-store"
+    - command: "openstack role create ResellerAdmin"
+    - command: "openstack role add --project service --user ceilometer ResellerAdmin"
+    - command: "openstack endpoint create --region RegionOne object-store {{ item }} http://{{ internal_vip_address|default(groups['controller'][0]) }}:8080/v1/AUTH_%(tenant_id)s"
+      with_items:
+        - internal
+        - public
+        - admin
+  when: not ansible_check_mode and ulist.stdout.find("swift") < 0
 
 - name: create the base account.builder
   command: swift-ring-builder account.builder create 10 {{ swift_replica_count }} 1 chdir=/etc/swift

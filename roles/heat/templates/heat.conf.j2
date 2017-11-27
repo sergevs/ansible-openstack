@@ -1,42 +1,50 @@
 [DEFAULT]
-heat_metadata_server_url = http://{{ groups['controller'][0] }}:8000
-heat_waitcondition_server_url = http://{{ groups['controller'][0] }}:8000/v1/waitcondition
+
+transport_url = rabbit://{% for host in groups['controller'] %}openstack:{{ rabbitmq_password }}@{{ hostvars[host]['ansible_default_ipv4']['address'] }}{% if not loop.last %},{% endif %}{% endfor %}
+
+heat_metadata_server_url = http://{{ internal_vip_address|default(groups['controller'][0]) }}:8000
+heat_waitcondition_server_url = http://{{ internal_vip_address|default(groups['controller'][0]) }}:8000/v1/waitcondition
 stack_domain_admin = heat_domain_admin
 stack_domain_admin_password = {{ heat_domain_password }}
 stack_user_domain_name = heat
 deferred_auth_method = trusts
 trusts_delegated_role = heat_stack_owner
-rpc_backend = rabbit
-rpc_backend = rabbit
 
 [clients_keystone]
-auth_uri = http://{{ groups['controller'][0] }}:35357
+auth_uri = http://{{ internal_vip_address|default(groups['controller'][0]) }}:35357
 
 [keystone_authtoken]
-auth_uri = http://{{ groups['controller'][0] }}:5000
-auth_url = http://{{ groups['controller'][0] }}:35357
-memcached_servers = {{ groups['controller'][0] }}:11211
+auth_uri = http://{{ internal_vip_address|default(groups['controller'][0]) }}:5000
+auth_url = http://{{ internal_vip_address|default(groups['controller'][0]) }}:35357
 auth_type = password
 project_domain_name = default
 user_domain_name = default
 project_name = service
 username = heat
 password = {{ heat_password }}
+memcached_servers = {% for host in groups['controller'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}:11211{% if not loop.last %},{% endif %}{% endfor %}
+
+[cache]
+backend = oslo_cache.memcache_pool
+enabled = True
+memcached_servers = {% for host in groups['controller'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}:11211{% if not loop.last %},{% endif %}{% endfor %}
 
 [trustee]
-auth_url = http://{{ groups['controller'][0] }}:35357
+auth_url = http://{{ internal_vip_address|default(groups['controller'][0]) }}:35357
 auth_plugin = password
 user_domain_name = default
 username = heat
 password = {{ heat_password }}
 
 [database]
-connection = mysql+pymysql://heat:{{ heatdb_password }}@{{ groups['controller'][0] }}/heat
+connection = mysql+pymysql://heat:{{ heatdb_password }}@{{ internal_vip_address|default(groups['controller'][0]) }}/heat
 
 [ec2authtoken]
-auth_uri = http://{{ groups['controller'][0] }}:5000/v3
+auth_uri = http://{{ internal_vip_address|default(groups['controller'][0]) }}:5000/v3
 
-[oslo_messaging_rabbit]
-rabbit_host = {{ groups['controller'][0] }}
-rabbit_userid = openstack
-rabbit_password = {{ rabbitmq_password }}
+[oslo_messaging_notifications]
+{% if groups['ceilometer-controller']|count > 0 %}
+driver = messagingv2
+{% else %}
+driver = noop
+{% endif %}

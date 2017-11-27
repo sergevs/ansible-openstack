@@ -1,19 +1,31 @@
 # Ansible Playbook: Openstack
 
-An ansible playbook to deploy openstack components to the cluster
+An ansible playbook to deploy openstack components to a cluster.
 # Overview
-The playbook is composed according to [official openstack guides](http://docs.openstack.org/ocata/install-guide-rdo/) 
-with a primary purpose to learn openstack deployment in a nutshell. Another reason is to fill the gap between official 
-[full-fledged](https://github.com/openstack/openstack-ansible) and 
-[devel](http://docs.openstack.org/developer/openstack-ansible/developer-docs/quickstart-aio.html) deployment guides. 
-At the current state the playbook is able to deploy a fully functional openstack cluster.
+Initially the playbook was composed with a primary purpose to learn openstack deployment in a nutshell. 
+As the project succesfully passes test environment the goal is changed to fill the gap between [install from source](https://github.com/openstack/openstack-ansible) and 
+[docker deployment](https://github.com/openstack/kolla-ansible) deployments, i.e. to create a deployment on bare metal hosts from official packages repository without containers and therfore eliminate addition level of related complexity.
+At the current state, the playbook is able to deploy a fully functional openstack cluster(see below).
 Also it's possible to deploy everything on a single(VM) host.
-Work on HA deployment is in progress.
-So if you are looking for a simple setup and can afford the lack of HA - than you are on the right place. 
-Also please read requirements section carefully.
+You are welcomed to read the playbook and feedback pull requests and suggestions :)
+Please also consider [official guides](https://docs.openstack.org/pike/deploy/)
+
+#### Basic high availability features implemented for controller/infrastructure services:
+* MariaDB galera cluster
+* RabbitMQ cluster
+* Memcached service
+* VIP cluster address managed by keepalived
+
+#### So if more than one controller node configured, seemless failover is expected for:
+* keystone
+* glance
+* cinder controller
+* heat
+* neutron controller
+* horizon
 
 # Description
-#### The playbook is able to setup the core services described in the [official guide](http://docs.openstack.org/ocata/install-guide-rdo/):
+#### The playbook is able to setup the core services described in the [official guide](https://docs.openstack.org/install-guide/openstack-services.html#):
 * [**keystone**](https://docs.openstack.org/keystone/latest/)
 * [**glance**](https://docs.openstack.org/glance/latest/)
 * [**cinder**](https://docs.openstack.org/cinder/latest/)
@@ -38,16 +50,23 @@ Please visit [clinit manager home page](https://github.com/sergevs/clinit) and s
 After clinit package installed you’ll be able to stop, start and see status of services on the cluster.
 
 # Configuration
-Service configuration performed using the hosts file. The empty [hosts](hosts) file is supplied with the playbook.
+Services configuration performed using the hosts and variables files. 
+#### Hosts file:
+The empty  file is supplied with the playbook. Please examine [hosts](hosts) and supply appropriate host names. 
 **You must not remove any existing group**. Leave the group empty if you don't need services the group configures. The same hostname can be placed to any hosts group.
 As an instance if you want setup everything on one host, just put the same hostname to each hosts group.
 As far, only **controller** and **compute** groups are well tested and supported.
 
-#### Variables parameters:
-Please see [group_vars/all](group_vars/all) and supply appropriate configuration for the required networking and disk partition parameters.
+#### Variables file:
+Please examine [group_vars/all](group_vars/all) and supply appropriate configuration for your network environment and disk storage parameters.
 
 # Usage
-To start deployment run:
+## Prepare,verifty repositories configuration and perform a basic check:
+
+    ansible-playbook -i hosts -t prepare site.yml
+    ansible-playbook -i hosts -t check site.yml
+
+## Deployment:
 
     ansible-playbook -i hosts site.yml
 
@@ -63,14 +82,14 @@ if you have installed clinit, after deployment you can also run:
 
 Also most hostgroups have the tag with similar name.
 
-
 # Requirements
-* [Ansible >= 2.2.0.0 ](http://www.ansible.com) is required. Please read [official documentation](http://docs.ansible.com/ansible/intro_installation.html#latest-release-via-yum) to install it. 
-* Openstack version: **liberty**, **mitaka**, **ocata** - please use appropriate branch, **ocata** is currently at the master branch. **newton** version is skipped
+* [Ansible >= 2.2.0.0 ](http://www.ansible.com) is required.
+* Openstack version: **liberty**, **mitaka**, **ocata**, **pike** - please use appropriate branch, **pike** is currently at the master branch.
 * **remote_user = root** must be configured for ansible.
 
 # Target host(s) requirements
-* OS version: Redhat/CentOS 7
+* At least 8 Gb RAM with 4 CPU cores is required for minimal single host testing configuration.
+* OS version: Redhat/CentOS 7.4 with current updates.(**updates are important**).
 * The required for Openstack repositories have to be properly configured.
 * SSH key passwordless authentication must be configured for root account.
 * **se_linux** must be disabled.

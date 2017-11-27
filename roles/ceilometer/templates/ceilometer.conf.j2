@@ -1,27 +1,23 @@
 [DEFAULT]
-auth_strategy = keystone
-rpc_backend = rabbit
+
+transport_url = rabbit://{% for host in groups['controller'] %}openstack:{{ rabbitmq_password }}@{{ hostvars[host]['ansible_default_ipv4']['address'] }}{% if not loop.last %},{% endif %}{% endfor %}
 
 [database]
-connection = mongodb://ceilometer:{{ ceilometerdb_password }}@{{ groups['controller'][0] }}:27017/ceilometer
+connection = mongodb://ceilometer:{{ ceilometerdb_password }}@{{ internal_vip_address|default(groups['controller'][0]) }}:27017/ceilometer
 
 [keystone_authtoken]
-auth_uri = http://{{ groups['controller'][0] }}:5000
-auth_url = http://{{ groups['controller'][0] }}:35357
+auth_uri = http://{{ internal_vip_address|default(groups['controller'][0]) }}:5000
+auth_url = http://{{ internal_vip_address|default(groups['controller'][0]) }}:35357
 auth_type = password
 project_domain_name = default
 user_domain_name = default
 project_name = service
 username = ceilometer
 password = {{ ceilometer_password }} 
-
-[oslo_messaging_rabbit]
-rabbit_host = {{ groups['controller'][0] }}
-rabbit_userid = openstack
-rabbit_password = {{ rabbitmq_password }}
+memcached_servers = {% for host in groups['controller'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}:11211{% if not loop.last %},{% endif %}{% endfor %}
 
 [service_credentials]
-auth_url = http://{{ groups['controller'][0] }}:5000
+auth_url = http://{{ internal_vip_address|default(groups['controller'][0]) }}:5000
 auth_type = password
 project_domain_name = default
 user_domain_name = default

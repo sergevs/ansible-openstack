@@ -1,27 +1,3 @@
-- name: copy db create template
-  template: src=glancedb.sql.j2 dest=/tmp/glancedb.sql
-
-- name: create database
-  shell : mysql -u root < /tmp/glancedb.sql
-
-- name: remove sql
-  file: path=/tmp/glancedb.sql state=absent
-
-- name: list users
-  command: "openstack service list"
-  register: ulist
-
-- block:
-    - command: "openstack user create --domain default --password {{ glance_password }} glance"
-    - command: "openstack role add --project service --user glance admin"
-    - command: "openstack service create --name glance --description 'OpenStack Image service' image"
-    - command: "openstack endpoint create --region RegionOne image {{ item }} http://{{ ansible_hostname }}:9292"
-      with_items:
-        - internal
-        - public
-        - admin
-  when: not ansible_check_mode and ulist.stdout.find("glance") < 0
-
 - name: install packages
   tags: packages
   package: name={{ item }} state=latest
@@ -36,11 +12,37 @@
     - glance-api.conf
     - glance-registry.conf
 
-- name: run glance-db sync
-  command: glance-manage db_sync
-  become: true
-  become_user: glance
-  when: not ansible_check_mode
+- block:
+  - name: copy db create template
+    template: src=glancedb.sql.j2 dest=/tmp/glancedb.sql
+
+  - name: create database
+    shell : mysql -u root < /tmp/glancedb.sql
+
+  - name: remove sql
+    file: path=/tmp/glancedb.sql state=absent
+
+  - name: list users
+    command: "openstack service list"
+    register: ulist
+
+  - block:
+      - command: "openstack user create --domain default --password {{ glance_password }} glance"
+      - command: "openstack role add --project service --user glance admin"
+      - command: "openstack service create --name glance --description 'OpenStack Image service' image"
+      - command: "openstack endpoint create --region RegionOne image {{ item }} http://{{ internal_vip_address|default(groups['controller'][0]) }}:9292"
+        with_items:
+          - internal
+          - public
+          - admin
+    when: not ansible_check_mode and ulist.stdout.find("glance") < 0
+
+  - name: run glance-db sync
+    command: glance-manage db_sync
+    become: true
+    become_user: glance
+    when: not ansible_check_mode
+  run_once: true
 
 - name: start services
   tags: service
@@ -52,23 +54,21 @@
 
 - wait_for: port=9292
 
-- name: get images list
-  command: "openstack image list"
-  register: imlist
-  when: not ansible_check_mode
-
 - block:
-  - name: get cirros image
-    get_url: url=http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img dest=/tmp/cirros-0.3.4-x86_64-disk.img
+  - name: get images list
+    command: "openstack image list"
+    register: imlist
+    when: not ansible_check_mode
 
-  - name: upload the image
-    command: "openstack image create 'cirros' --file /tmp/cirros-0.3.4-x86_64-disk.img --disk-format qcow2 --container-format bare --public"
+  - block:
+    - name: get cirros image
+      get_url: url=http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img dest=/tmp/cirros-0.3.4-x86_64-disk.img
 
-  when: not ansible_check_mode and imlist.stdout.find("cirros") < 0
+    - name: upload the image
+      command: "openstack image create 'cirros' --file /tmp/cirros-0.3.4-x86_64-disk.img --disk-format qcow2 --container-format bare --public"
+    when: not ansible_check_mode and imlist.stdout.find("cirros") < 0
+  run_once: true
 
-- name: get images list
-  command: "openstack image list"
-  register: imlist
-  when: not ansible_check_mode
-  
-- debug: var=imlist
+- name: test glance api
+  tags: test
+  shell: glance --os-image-url http://{{ ansible_default_ipv4['address'] }}:9292 image-list | grep '^| ID'

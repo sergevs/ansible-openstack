@@ -1,27 +1,3 @@
-- name: copy db create template
-  template: src=aodhdb.sql.j2 dest=/tmp/aodhdb.sql
-
-- name: create database
-  shell : mysql -u root < /tmp/aodhdb.sql
-
-- name: remove sql
-  file: path=/tmp/aodhdb.sql state=absent
-
-- name: list users
-  command: "openstack user list"
-  register: ulist
-
-- block:
-    - command: "openstack user create --domain default --password {{ aodh_password }} aodh"
-    - command: "openstack role add --project service --user aodh admin"
-    - command: "openstack service create --name aodh --description 'OpenStack Telemetry Alarming service' alarming"
-    - command: "openstack endpoint create --region RegionOne alarming {{ item }} http://{{ ansible_hostname }}:8042"
-      with_items:
-        - internal
-        - public
-        - admin
-  when: not ansible_check_mode and ulist.stdout.find("aodh") < 0
-
 - name: install packages
   tags: packages
   package: name={{ item }} state=latest
@@ -38,11 +14,37 @@
   with_items:
     - aodh.conf
 
-- name: run aodh db_sync
-  command: aodh-dbsync
-  become: true
-  become_user: aodh
-  when: not ansible_check_mode
+- block:
+  - name: copy db create template
+    template: src=aodhdb.sql.j2 dest=/tmp/aodhdb.sql
+
+  - name: create database
+    shell : mysql -u root < /tmp/aodhdb.sql
+
+  - name: remove sql
+    file: path=/tmp/aodhdb.sql state=absent
+
+  - name: list users
+    command: "openstack user list"
+    register: ulist
+
+  - block:
+      - command: "openstack user create --domain default --password {{ aodh_password }} aodh"
+      - command: "openstack role add --project service --user aodh admin"
+      - command: "openstack service create --name aodh --description 'OpenStack Telemetry Alarming service' alarming"
+      - command: "openstack endpoint create --region RegionOne alarming {{ item }} http://{{ internal_vip_address|default(groups['controller'][0]) }}:8042"
+        with_items:
+          - internal
+          - public
+          - admin
+    when: not ansible_check_mode and ulist.stdout.find("aodh") < 0
+
+  - name: run aodh db_sync
+    command: aodh-dbsync
+    become: true
+    become_user: aodh
+    when: not ansible_check_mode
+  run_once: true
 
 - name: start services
   tags: service

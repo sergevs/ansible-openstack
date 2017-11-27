@@ -1,37 +1,3 @@
-- name: copy db create template
-  template: src=novadb.sql.j2 dest=/tmp/novadb.sql
-
-- name: create database
-  shell : mysql -u root < /tmp/novadb.sql
-
-- name: remove sql
-  file: path=/tmp/novadb.sql state=absent
-
-- name: list users
-  command: "openstack user list"
-  register: ulist
-
-- block:
-    - command: "openstack user create --domain default --password {{ nova_password }} nova"
-    - command: "openstack role add --project service --user nova admin"
-    - command: "openstack service create --name nova --description 'OpenStack Compute' compute"
-    - command: "openstack endpoint create --region RegionOne compute {{ item }} http://{{ ansible_hostname }}:8774/v2.1"
-      with_items:
-        - internal
-        - public
-        - admin
-    - command: "{{ item }}"
-      with_items:
-        - "openstack user create --domain default --password {{ nova_placement_password }} placement"
-        - "openstack role add --project service --user placement admin"
-    - command: "openstack service create --name placement --description 'Placement API' placement"
-    - command: "openstack endpoint create --region RegionOne placement {{ item }} http://{{ ansible_hostname }}:8778"
-      with_items:
-        - internal
-        - public
-        - admin
-  when: not ansible_check_mode and ulist.stdout.find("nova") < 0
-
 - name: install packages
   tags: packages
   package: name={{ item }} state=latest
@@ -42,7 +8,6 @@
     - openstack-nova-novncproxy
     - openstack-nova-scheduler
     - openstack-nova-placement-api
-    - openstack-nova-cert
 
 - name: install nova configuration
   tags: config
@@ -56,17 +21,54 @@
 
 - name: restart httpd
   service: name=httpd state=restarted enabled=yes
-
-- name: run nova db sync
-  command: nova-manage {{ item }} 
-  become: true
-  become_user: nova
-  with_items:
-    - "api_db sync"
-    - "cell_v2 map_cell0"
-    - "cell_v2 create_cell --name=cell1 --verbose"
-    - "db sync"
   when: not ansible_check_mode
+
+- name: copy db create template
+  template: src=novadb.sql.j2 dest=/tmp/novadb.sql
+
+- block:
+  - name: create database
+    shell : mysql -u root < /tmp/novadb.sql
+
+  - name: remove sql
+    file: path=/tmp/novadb.sql state=absent
+
+  - name: list users
+    command: "openstack user list"
+    register: ulist
+
+  - block:
+      - command: "openstack user create --domain default --password {{ nova_password }} nova"
+      - command: "openstack role add --project service --user nova admin"
+      - command: "openstack service create --name nova --description 'OpenStack Compute' compute"
+      - command: "openstack endpoint create --region RegionOne compute {{ item }} http://{{ internal_vip_address|default(groups['controller'][0]) }}:8774/v2.1"
+        with_items:
+          - internal
+          - public
+          - admin
+      - command: "{{ item }}"
+        with_items:
+          - "openstack user create --domain default --password {{ nova_placement_password }} placement"
+          - "openstack role add --project service --user placement admin"
+      - command: "openstack service create --name placement --description 'Placement API' placement"
+      - command: "openstack endpoint create --region RegionOne placement {{ item }} http://{{ internal_vip_address|default(groups['controller'][0]) }}:8778"
+        with_items:
+          - internal
+          - public
+          - admin
+    when: not ansible_check_mode and ulist.stdout.find("nova") < 0
+
+  - name: run nova db sync
+    command: nova-manage {{ item }} 
+    become: true
+    become_user: nova
+    with_items:
+      - "api_db sync"
+      - "cell_v2 map_cell0"
+      - "cell_v2 create_cell --name=cell1 --verbose"
+      - "db sync"
+    when: not ansible_check_mode
+  run_once: true
 
 - name: start services
   tags: service
@@ -78,10 +80,6 @@
     - openstack-nova-scheduler
     - openstack-nova-conductor
     - openstack-nova-novncproxy
-    - openstack-nova-cert
 
 - name: verify operation
-  command: nova-manage cell_v2 list_cells
-  register: test
-
-- debug: var=test
+  shell: nova-manage cell_v2 list_cells | grep '^| cell0'

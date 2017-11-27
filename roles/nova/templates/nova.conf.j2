@@ -1,7 +1,7 @@
 [DEFAULT]
-transport_url = rabbit://openstack:{{ rabbitmq_password }}@{{ groups['controller'][0] }}
-rpc_backend = rabbit
-auth_strategy = keystone
+
+transport_url = rabbit://{% for host in groups['controller'] %}openstack:{{ rabbitmq_password }}@{{ hostvars[host]['ansible_default_ipv4']['address'] }}{% if not loop.last %},{% endif %}{% endfor %}
+
 my_ip = {{ ansible_default_ipv4['address'] }}
 network_api_class = nova.network.neutronv2.api.API
 security_group_api = neutron
@@ -14,35 +14,43 @@ notify_on_state_change = vm_and_task_state
 use_neutron = True
 public_interface={{ public_interface_name }}
 
-[api]
-auth_strategy = keystone
-
-[api_database]
-connection = mysql+pymysql://nova:{{ novadb_password }}@{{ groups['controller'][0] }}/nova_api
+{% if virt_type|default('kvm') == 'lxc' %}
+use_cow_images=False
+{% endif %}
 
 [database]
-connection = mysql+pymysql://nova:{{ novadb_password }}@{{ groups['controller'][0] }}/nova
+connection = mysql+pymysql://nova:{{ novadb_password }}@{{ internal_vip_address|default(groups['controller'][0]) }}/nova
+
+[api_database]
+connection = mysql+pymysql://nova:{{ novadb_password }}@{{ internal_vip_address|default(groups['controller'][0]) }}/nova_api
+
+[cache]
+backend = oslo_cache.memcache_pool
+enabled = True
+memcached_servers = {% for host in groups['controller'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}:11211{% if not loop.last %},{% endif %}{% endfor %}
 
 [glance]
-api_servers  = http://{{ groups['glance'][0] }}:9292
+api_servers  = http://{{ internal_vip_address|default(groups['controller'][0]) }}:9292
 
 [keystone_authtoken]
-auth_uri = http://{{ groups['controller'][0] }}:5000
-auth_url = http://{{ groups['controller'][0] }}:35357
-memcached_servers = {{ groups['controller'][0] }}:11211
+auth_uri = http://{{ internal_vip_address|default(groups['controller'][0]) }}:5000
+auth_url = http://{{ internal_vip_address|default(groups['controller'][0]) }}:35357
 auth_type = password
 project_domain_name = default
 user_domain_name = default
 project_name = service
 username = nova
 password = {{ nova_password }}
+memcached_servers = {% for host in groups['controller'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}:11211{% if not loop.last %},{% endif %}{% endfor %}
+
 
 [libvirt]
-virt_type = kvm
+virt_type = {{ virt_type|default('kvm') }}
+hw_machine_type = x86_64=pc-i440fx-rhel7.2.0
 
 [neutron]
-url = http://{{ groups['controller'][0] }}:9696
-auth_url = http://{{ groups['controller'][0] }}:35357
+url = http://{{ internal_vip_address|default(groups['controller'][0]) }}:9696
+auth_url = http://{{ internal_vip_address|default(groups['controller'][0]) }}:35357
 auth_strategy = keystone
 auth_type = password
 project_domain_name = default
@@ -57,11 +65,6 @@ service_metadata_proxy = True
 metadata_proxy_shared_secret = {{ metadata_secret }}
 {% endif %}
 
-[oslo_messaging_rabbit]
-rabbit_host = {{ groups['controller'][0] }}
-rabbit_userid = openstack
-rabbit_password = {{ rabbitmq_password }}
-
 [oslo_messaging_notifications]
 driver = messagingv2
 
@@ -71,7 +74,7 @@ enabled = True
 {% endif %}
 vncserver_listen = $my_ip
 vncserver_proxyclient_address = $my_ip
-novncproxy_base_url = http://{{ groups['controller'][0] }}:6080/vnc_auto.html
+novncproxy_base_url = http://{{ internal_vip_address|default(groups['controller'][0]) }}:6080/vnc_auto.html
 
 [placement]
 os_region_name = RegionOne
@@ -79,7 +82,7 @@ project_domain_name = Default
 project_name = service
 auth_type = password
 user_domain_name = Default
-auth_url = http://{{ groups['controller'][0] }}:35357/v3
+auth_url = http://{{ internal_vip_address|default(groups['controller'][0]) }}:35357/v3
 username = placement
 password = {{ nova_placement_password }} 
 

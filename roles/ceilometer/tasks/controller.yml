@@ -1,29 +1,3 @@
-- name:  database
-  tags: dbs
-  shell: "mongo --host {{ ansible_hostname }} --eval \"db = db.getSiblingDB('ceilometer');db.getUser('ceilometer')\""
-  register: ulist
-
-- name: create database
-  tags: dbs
-  command : "mongo --host {{ ansible_hostname }} --eval \"db = db.getSiblingDB('ceilometer'); db.createUser({user: 'ceilometer', pwd: '{{ ceilometerdb_password }}', roles: [ 'readWrite', 'dbAdmin' ]})\""
-  when:  not ansible_check_mode and ulist.stdout.find("null") >= 0
-
-- name: list users
-  command: "openstack user list"
-  register: ulist
-
-- block:
-    - command: "openstack user create --domain default --password {{ ceilometer_password }} ceilometer"
-    - command: "openstack role add --project service --user ceilometer admin"
-    - command: "openstack service create --name ceilometer --description 'OpenStack Telemetry service' metering"
-    - command: "openstack endpoint create --region RegionOne metering {{ item }} http://{{ ansible_hostname }}:8777"
-      with_items:
-        - internal
-        - public
-        - admin
-
-  when: not ansible_check_mode and ulist.stdout.find("ceilometer") < 0
-
 - name: install packages
   tags: package
   package: name={{ item }} state=latest
@@ -40,12 +14,34 @@
   template: src={{ item }}.j2 dest=/etc/ceilometer/{{ item }}
   with_items:
     - ceilometer.conf
-
-- name: install configuration
-  tags: config
-  copy: src={{ item }} dest=/etc/ceilometer/{{ item }}
-  with_items:
     - pipeline.yaml
+
+- block:
+  - name:  database
+    tags: dbs
+    shell: "mongo --host {{ internal_vip_address|default(groups['controller'][0]) }} --eval \"db = db.getSiblingDB('ceilometer');db.getUser('ceilometer')\""
+    register: ulist
+
+  - name: create database
+    tags: dbs
+    command : "mongo --host {{ internal_vip_address|default(groups['controller'][0]) }} --eval \"db = db.getSiblingDB('ceilometer'); db.createUser({user: 'ceilometer', pwd: '{{ ceilometerdb_password }}', roles: [ 'readWrite', 'dbAdmin' ]})\""
+    when:  not ansible_check_mode and ulist.stdout.find("null") >= 0
+
+  - name: list users
+    command: "openstack user list"
+    register: ulist
+
+  - block:
+      - command: "openstack user create --domain default --password {{ ceilometer_password }} ceilometer"
+      - command: "openstack role add --project service --user ceilometer admin"
+      - command: "openstack service create --name ceilometer --description 'OpenStack Telemetry service' metering"
+      - command: "openstack endpoint create --region RegionOne metering {{ item }} http://{{ internal_vip_address|default(groups['controller'][0]) }}:8777"
+        with_items:
+          - internal
+          - public
+          - admin
+    when: not ansible_check_mode and ulist.stdout.find("ceilometer") < 0
+  run_once: true
 
 - name: start services
   tags: service

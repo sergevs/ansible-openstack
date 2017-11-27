@@ -5,6 +5,13 @@
     - prepare
   environment: "{{ openstack_env }}"
 
+- name: ha
+  hosts: controller
+  tags: ha
+  roles: 
+    - { role: ha, when: "{{ groups['controller']|count > 1 }}" }
+  environment: "{{ openstack_env }}"
+
 - name: install database
   hosts: database
   tags: database
@@ -62,6 +69,7 @@
       become_user: nova
       become: true
       run_once: true
+      when: not ansible_check_mode
   environment: "{{ openstack_env }}"
 
 - name: install ceilometer controller service

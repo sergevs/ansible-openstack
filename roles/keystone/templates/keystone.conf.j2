@@ -3,10 +3,13 @@
 [token]
 provider = fernet
 
+[fernet_tokens]
+max_active_keys = {{ (groups['controller'] | length) + 1 }}
+
 [database]
-connection =  mysql+pymysql://keystone:{{ keystonedb_password }}@{{ groups['controller'][0] }}/keystone
+connection = mysql+pymysql://keystone:{{ keystonedb_password }}@{{ internal_vip_address|default(groups['controller'][0]) }}/keystone
 
 [cache]
 backend = oslo_cache.memcache_pool
 enabled = True
-memcache_servers = localhost:11211
+memcached_servers = {% for host in groups['controller'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}:11211{% if not loop.last %},{% endif %}{% endfor %}

@@ -11,11 +11,6 @@
   template: src={{ item }}.j2 dest=/etc/ceilometer/{{ item }}
   with_items:
     - ceilometer.conf
-
-- name: install configuration
-  tags: config
-  copy: src={{ item }} dest=/etc/ceilometer/{{ item }}
-  with_items:
     - pipeline.yaml
 
 - name: start services

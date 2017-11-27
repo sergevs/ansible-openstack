@@ -1,88 +1,79 @@
+- block:
 #nova
-- name: create nano flavor
-  command: openstack flavor create --id 0 --vcpus 1 --ram 64 --disk 1 m1.nano
-  run_once: true
+  - name: create nano flavor
+    shell: openstack flavor list | awk '/m1.nano/{print "m1.nano"}'
+    register: flav
 
-- name: launch test instance
-  tags: test_nova
-  command: nova boot --image cirros --flavor m1.nano --nic net-name=private --poll ansible_test
-  run_once: true
+  - name: create nano flavor
+    command: openstack flavor create --id 0 --vcpus 1 --ram 64 --disk 1 m1.nano
+    when: flav.stdout.find('m1.nano') < 0
 
-- name: check instance status
-  tags: test_nova
-  shell: nova show ansible_test | awk '/status/{print $4}'
-  register: result
-  failed_when: result.stdout.find('ACTIVE') < 0
-  run_once: true
+  - name: launch test instance
+    tags: test_nova
+    command: nova boot --image cirros --flavor m1.nano --nic net-name=private --poll ansible_test
 
-- name: destroy instance
-  tags: test_nova
-  command: nova delete ansible_test
-  run_once: true
+  - name: check instance status
+    tags: test_nova
+    shell: nova show ansible_test | awk '/status/{print $4}'
+    register: result
+    failed_when: result.stdout.find('ACTIVE') < 0
 
-#heat
-- name: copy stack template
-  tags: test_stack
-  copy: src=cirros.yaml dest=/tmp/cirros.yaml
-  run_once: true
+  - name: destroy instance
+    tags: test_nova
+    command: nova delete ansible_test
 
-- name: create test stack
-  command: heat  stack-create --poll -f /tmp/cirros.yaml  ansible_test
-  run_once: true
+  #heat
+  - name: copy stack template
+    tags: test_stack
+    copy: src=cirros.yaml dest=/tmp/cirros.yaml
 
-- name: check stack status
-  tags: test_stack
-  shell: heat stack-show ansible_test | awk '/status /{print $4}'
-  register: result
-  failed_when: result.stdout.find('CREATE_COMPLETE') < 0
-  run_once: true
+  - name: create test stack
+    command: openstack stack create --wait -t /tmp/cirros.yaml ansible_test
 
-- name: delete stack 
-  tags: test_stack
-  command: heat stack-delete -y ansible_test
-  run_once: true
+  - name: check stack status
+    tags: test_stack
+    shell: openstack stack show ansible_test | awk '/status /{print $4}'
+    register: result
+    failed_when: result.stdout.find('CREATE_COMPLETE') < 0
 
-- name: delete nano flavor
-  command: openstack flavor delete m1.nano
-  run_once: true
+  - name: delete stack 
+    tags: test_stack
+    command: openstack stack delete --wait -y ansible_test
 
-#swift
-- name: create test container
-  tags: test_swift
-  command: swift post ansible_test
-  run_once: true
+  - name: delete nano flavor
+    command: openstack flavor delete m1.nano
 
-- name: create test file
-  tags: test_swift
-  command: dd if=/dev/urandom of=ansible_swift_test bs=1024 count=2000
-  run_once: true
+  #swift
+  - name: create test container
+    tags: test_swift
+    command: swift post ansible_test
 
-- name: upload test file to test container
-  tags: test_swift
-  command: swift upload ansible_test ansible_swift_test
-  run_once: true
+  - name: create test file
+    tags: test_swift
+    command: dd if=/dev/urandom of=ansible_swift_test bs=1024 count=2000
 
-- name: remove test file
-  tags: test_swift
-  file: name=ansible_swift_test state=absent
-  run_once: true
+  - name: upload test file to test container
+    tags: test_swift
+    command: swift upload ansible_test ansible_swift_test
 
-- name: download the file from test container
-  tags: test_swift
-  command: swift download ansible_test ansible_swift_test 
-  run_once: true
+  - name: remove test file
+    tags: test_swift
+    file: name=ansible_swift_test state=absent
 
-- name: remove test file
-  tags: test_swift
-  file: name=ansible_swift_test state=absent
-  run_once: true
+  - name: download the file from test container
+    tags: test_swift
+    command: swift download ansible_test ansible_swift_test 
 
-- name: delete test file from test container
-  tags: test_swift
-  command: swift delete ansible_test ansible_swift_test 
-  run_once: true
+  - name: remove test file
+    tags: test_swift
+    file: name=ansible_swift_test state=absent
 
-- name: delete test container
-  tags: test_swift
-  command: swift delete ansible_test
+  - name: delete test file from test container
+    tags: test_swift
+    command: swift delete ansible_test ansible_swift_test 
+
+  - name: delete test container
+    tags: test_swift
+    command: swift delete ansible_test
   run_once: true
+  when: not ansible_check_mode
