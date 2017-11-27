@@ -3,11 +3,16 @@
 An ansible playbook to deploy openstack components to a cluster.
 # Overview
 Initially the playbook was composed with a primary purpose to learn openstack deployment in a nutshell. 
+
 As the project succesfully passes test environment the goal is changed to fill the gap between [install from source](https://github.com/openstack/openstack-ansible) and 
 [docker deployment](https://github.com/openstack/kolla-ansible) deployments, i.e. to create a deployment on bare metal hosts from official packages repository without containers and therfore eliminate addition level of related complexity.
+
 At the current state, the playbook is able to deploy a fully functional openstack cluster(see below).
+
 Also it's possible to deploy everything on a single(VM) host.
+
 You are welcomed to read the playbook and feedback pull requests and suggestions :)
+
 Please also consider [official guides](https://docs.openstack.org/pike/deploy/)
 
 #### Basic high availability features implemented for controller/infrastructure services:
