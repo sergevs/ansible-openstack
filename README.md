@@ -5,7 +5,7 @@ An ansible playbook to deploy openstack components to a cluster.
 Initially the playbook was composed with a primary purpose to learn openstack deployment in a nutshell. 
 
 As the project succesfully passes test environment the goal is changed to fill the gap between [install from source](https://github.com/openstack/openstack-ansible) and 
-[docker deployment](https://github.com/openstack/kolla-ansible) deployments, i.e. to create a deployment on bare metal hosts from official packages repository without containers and therfore eliminate addition level of related complexity.
+[docker deployment](https://github.com/openstack/kolla-ansible) , i.e. to create a deployment on bare metal hosts from official packages repository without containers and therfore eliminate addition level of related complexity.
 
 At the current state, the playbook is able to deploy a fully functional openstack cluster(see below).
 Also it's possible to deploy everything on a single(VM) host.
@@ -22,8 +22,9 @@ You are welcomed to read the playbook and feedback pull requests and suggestions
 * keystone
 * glance
 * cinder controller
-* heat
+* nova controller
 * neutron controller
+* heat
 * horizon
 
 # Description
@@ -90,7 +91,7 @@ Also most hostgroups have the tag with similar name.
 * **remote_user = root** must be configured for ansible.
 
 # Target host(s) requirements
-* At least 8 Gb RAM with 4 CPU cores is required for minimal single host testing configuration.
+* At least 8 Gb RAM, 4 CPU cores, 10Gb HDD (5Gb for root FS + 5GB cinder partition) is required for minimal single host test installation.
 * OS version: Redhat/CentOS 7.4 with current updates.(**updates are important**).
 * The required for Openstack repositories have to be properly configured.
 * SSH key passwordless authentication must be configured for root account.
